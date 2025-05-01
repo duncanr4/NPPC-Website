@@ -13,8 +13,12 @@
         "laravel/tinker": "^2.8",
         "livewire/livewire": "^3.5",
         "naoray/nova-json": "^3.0",
+        "outl1ne/nova-sortable": "^3.4",
         "sinnbeck/markdom": "^2.1",
         "spatie/laravel-data": "^4.1",
+        "spatie/laravel-tags": "^4.10",
+        "spatie/nova-tags-field": "^4.1",
+        "stripe/stripe-php": "^16.6",
         "whitecube/nova-flexible-content": "^1.1"
     },
     "require-dev": {

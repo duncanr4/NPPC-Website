@@ -3,12 +3,14 @@
 use App\Models\Article;
 
 function renderArticle(Article $article, bool $large = false): string {
+    if(!$article) return '';
+
     $imgHeight = $large ? 'h-56 md:h-[600px]' : 'h-56';
     return <<<EOB
 <div class="article-item mb-6">
     <a href="{$article->url}" class="{$imgHeight} block overflow-hidden justify-center items-center bg-center bg-cover" style="background-image: url('{$article->image_url}')"></a>
     <div class="line"></div>
-    <h5 class="mt-6">{$article->category->title}</h5>
+    <h5 class="mt-6">{$article->category?->title}</h5>
     <a class="text-xl text-white" href="{$article->url}">{$article->title}</a>
 </div>
 EOB;
@@ -23,13 +25,13 @@ EOB;
         <div class = "md:flex block justify-center mb-12" >
             <button
                     wire:click = "selectCategory('Latest')"
-                    class = "uppercase text-lg md:text-xl md:inline block md:mb-0 mb-6  border-b-2 mx-2 md:mx-12 text-center {{ $selectedCategory === 'Latest' ? ' border-indigo-500' : 'border-transparent' }}" >
+                    class = "uppercase text-lg md:text-lg md:inline block md:mb-0 mb-6  border-b-2 mx-2 md:mx-6 text-center {{ $selectedCategory === 'Latest' ? ' border-indigo-500' : 'border-transparent' }}" >
                 Latest
             </button >
             @foreach ($categories as $category)
                 <button
                         wire:click="selectCategory('{{ $category->title }}')"
-                        class="uppercase text-lg md:text-xl md:inline block md:mb-0 mb-6  border-b-2 mx-2 md:mx-12 text-center {{ $selectedCategory === $category->title ? ' border-indigo-500' : 'border-transparent' }}">
+                        class="uppercase text-lg md:text-lg md:inline block md:mb-0 mb-6  border-b-2 mx-2 md:mx-6 text-center {{ $selectedCategory === $category->title ? ' border-indigo-500' : 'border-transparent' }}">
                     {{ $category->title }}
                 </button>
             @endforeach

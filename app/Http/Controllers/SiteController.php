@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AnnualReport;
 use App\Models\Article;
 use App\Models\Page;
+use App\Models\Staff;
 use App\Models\Timeline;
 
 final class SiteController extends Controller {
@@ -18,6 +19,18 @@ final class SiteController extends Controller {
 
     public function timeline() {
         return view('pages.timeline', ['timelines' => Timeline::query()->orderBy('year')->get()]);
+    }
+
+    public function volunteer() {
+        return view('pages.volunteer');
+    }
+
+    public function staff() {
+        return view('pages.staff', ['staff' => Staff::getStaffMembers()]);
+    }
+
+    public function boardOfDirectors() {
+        return view('pages.board-of-directors', ['directors' => Staff::getBoardMembers()]);
     }
 
     public function annualReport() {

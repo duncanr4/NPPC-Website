@@ -20,11 +20,11 @@ class ArticlesGrid extends Component {
 
     public function loadArticles() {
         if ($this->selectedCategory === 'Latest') {
-            $query = Article::orderBy('created_at', 'desc');
+            $query = Article::orderBy('published_at', 'desc');
         } else {
             $query = Article::whereHas('category', function ($query) {
                 $query->where('title', $this->selectedCategory);
-            })->orderBy('created_at', 'desc');
+            })->orderBy('published_at', 'desc');
         }
 
         if ($this->limit) {

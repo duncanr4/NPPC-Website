@@ -11,34 +11,34 @@
     right: 0;
     bottom: 0;
     left: 0;
-    background: rgb(0 0 0 / 55%);
+    background: rgba(0, 0, 0, 0.7); // Dark transparent overlay
+    z-index: 1;
   }
 
   &:after {
     content: "";
     position: absolute;
-    top: 4rem;
-    bottom: 4rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 1px;
-    margin-left: -2rem;
-    background: #fff;
-
-    @media only screen and (max-width: 600px) {
-      display: none;
-    }
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(to bottom, rgba(255, 69, 0, 0.6), rgba(0, 0, 0, 0.8)); // Additional gradient overlay
+    mix-blend-mode: overlay;
+    z-index: 2;
   }
 
   .inner {
     border: 2px solid #fff;
     position: relative;
     z-index: 10;
+    padding: 2rem;
 
     .heading {
       font-weight: bold;
       font-size: 3rem;
       text-transform: uppercase;
+      color: #fff;
+      text-align: center;
 
       @media only screen and (max-width: 600px) {
         font-size: 2.5rem;
@@ -47,6 +47,8 @@
 
     p {
       font-size: 1.3rem;
+      color: #fff;
+      text-align: left;
     }
   }
 }

@@ -3,27 +3,53 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasSlug;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Tags\HasTags;
 
 /**
- * @property string   $title
- * @property string   $slug
- * @property string   $body
- * @property string   $intro
- * @property string   $image_url
- * @property string   $image
- * @property string   $url
- * @property string   $category_id
- * @property Category $category
+ * @property string     $title
+ * @property string     $slug
+ * @property string     $author_id
+ * @property string     $body
+ * @property string     $intro
+ * @property string     $image_url
+ * @property string     $image
+ * @property string     $url
+ * @property string     $category_id
+ * @property Carbon     $published_at
+ * @property string     $citations_json
+ * @property array|null $citations
+ * @property Category   $category
  */
 final class Article extends Model {
     use HasSlug;
+    use HasTags;
 
     protected $appends = ['url', 'image_url'];
+    protected $casts   = [
+        'published_at' => 'datetime',
+    ];
 
     public static function getBySlug(string $slug): self {
         return self::where('slug', $slug)->first();
+    }
+
+    public function author(): BelongsTo {
+        return $this->belongsTo(Author::class);
+    }
+
+    public function getCitationsAttribute(): ?array {
+        if (! $this->citations_json) {
+            return null;
+        }
+
+        $citations = json_decode($this->citations_json, true);
+
+        return collect($citations)
+            ->mapWithKeys(fn ($item) => [$item['attributes']['title'] => $item['attributes']['content']])
+            ->toArray();
     }
 
     public function getImageUrlAttribute(): string {

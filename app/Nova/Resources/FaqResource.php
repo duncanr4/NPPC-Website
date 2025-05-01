@@ -7,8 +7,11 @@ use Laravel\Nova\Fields\Markdown;
 use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Outl1ne\NovaSortable\Traits\HasSortableRows;
 
 class FaqResource extends Resource {
+    use HasSortableRows;
+
     public static $model = Faq::class;
     public static $title = 'question';
     public static $group = 'Content';
@@ -17,7 +20,8 @@ class FaqResource extends Resource {
         return [
             Text::make('Question'),
             Markdown::make('Answer'),
-            Select::make('Type')->options(['faq' => 'FAQ', 'map' => 'Map']),
+            Text::make('sort_order'),
+            Select::make('Type')->options(['faq' => 'FAQ', 'map' => 'Map', 'donation' => 'Donation']),
         ];
     }
 }

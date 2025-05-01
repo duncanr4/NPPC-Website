@@ -4,6 +4,57 @@ $gray: #4d5974;
 $lightgray: #e5e5e5;
 $blue: #5660fe;
 
+
+
+
+.faq-open-close {
+  font-size: 15px;
+  -webkit-appearance: none;
+  border: none;
+  color: #fff;
+  text-indent: -9999px;
+  background-color: transparent;
+  outline: none;
+  width: 21px;
+  height: 21px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  margin-top: -10px;
+
+  &:before,
+  &:after{
+    content: '';
+    display: block;
+    position: absolute;
+    width: 100%;
+    background-color: #fff;
+    height: 2px;
+    border-radius: 10px;
+    top: 45%;
+    transform: rotate(45deg);
+    transition: all .3s ease;
+  }
+
+  &:before{
+    left: -7px;
+  }
+
+  &:after{
+    transform: rotate(-45deg);
+    right: -7px;
+  }
+
+  &.active{
+    &:before{
+      left: 0;
+    }
+    &:after{
+      right: 0;
+    }
+  }
+}
+
 .container {
   margin: 0 auto;
   padding: 4rem;

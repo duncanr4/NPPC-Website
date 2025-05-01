@@ -166,7 +166,6 @@
             });
 
             features = features.map(ft => ft.toJSON());
-            console.log(features);
 
             let feature = e.features[0].toJSON();
 
@@ -181,14 +180,12 @@
             ]);
             let ids = features.map(ft =>  ft.properties.id);
             let prisonersAtLocation = window.prisoners.filter(vessel => ids.includes(vessel.id));
-            console.log(prisonersAtLocation);
 
             let vessel = window.prisoners.find(vessel => vessel.id == feature.properties.id);
             let props = vessel;
 
 
             let images = []
-            console.log(props);
             let popupContent = `<div class="popup-content">
                 <div class="popup-header">
                     ${props.name}
@@ -316,8 +313,6 @@
                 document.querySelector(".control-wrapper").style.display = "none";
                 document.getElementById("count").innerHTML = `${index + 1} of ${contentEntries.length}`;
             }
-
-            console.log(entries[index]);
         }
 
         document.getElementById("next-btn").onclick = (e) => {
@@ -338,24 +333,13 @@
 
         let data = []
         requestData.forEach((item) => {
-            if(!item["_Physical address"] || !item["_Latitude"] || !item["_Longitude"]) return false
-
-            if(!item.cases.length) {
-                item.cases = []
-                item.cases[0] = {}
-            }
-
-            item.cases[0]["Physical address"] = item["_Physical address"]
-            item.cases[0].latitude = item["_Latitude"]
-            item.cases[0].longitude = item["_Longitude"]
-
-            console.log(item)
+            if(!item["In Custody"]) return false
+            if(!item["Address"] || !item["latitude"] || !item["longitude"]) return false
             data.push(item)
         })
-        // console.log(data);
+
         window.allPrisoners = [...data];
         let prisonersGeocode = await geocodeResults(window.allPrisoners);
-        console.log(prisonersGeocode);
 
         window.prisoners = data.filter(entry => (entry.latitude && entry.longitude));
         window.prisoners = [...window.prisoners, ...prisonersGeocode];
@@ -367,8 +351,6 @@
                 "properties":{...entry}
             }
         });
-
-
 
         map.getSource("prisoners").setData({ "type":"FeatureCollection", "features":[...prisonersFc]});
         renderListItems(window.prisoners)
@@ -386,9 +368,9 @@
 
     const geocodeResults = async (prisoners) => {
         var targetPrisoners = prisoners.filter(prisoner => prisoner.cases.length).filter(lc => !lc.latitude);
-        targetPrisoners = targetPrisoners.filter(prisoner => prisoner.cases[0]["Physical address"]);
+        targetPrisoners = targetPrisoners.filter(prisoner => prisoner['Address']);
         let requests = targetPrisoners.map(prisoner => {
-            let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${prisoner.cases[0]["Physical address"]}.json?limit=5&country=us&language=en-US&access_token=${mapboxgl.accessToken}`;
+            let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${prisoner['Address']}.json?limit=5&country=us&language=en-US&access_token=${mapboxgl.accessToken}`;
 
             return fetch(url);
         });
@@ -396,7 +378,7 @@
         try {
             let response = await Promise.all(requests).then(responses => Promise.all(responses.map(res => res.json())))
             response.forEach((fc, i) => {
-                if(fc.features.length) {
+                if(fc.features && fc.features.length) {
                     let [longitude, latitude] = fc.features[0].center;
 
                     targetPrisoners[i] = {...targetPrisoners[i], new_lat:latitude, new_lng:longitude }
@@ -444,48 +426,57 @@
         });
 
         states = [...new Set(states)];
-        console.log(states);
-        states.forEach(state => {
-            let divContaner = document.createElement("div");
-            divContaner.classList.add("title-section");
 
-            divContaner.innerHTML = state;
-
-            docFrag.appendChild(divContaner);
-            let prisonersGroup = state == "Others" ? prisoners.filter(p => !p.State) : prisoners.filter(p => p.State == state);
-
-            createListingItems(prisonersGroup);
+        // Sort states alphabetically, placing 'Others' last
+        states.sort((a, b) => {
+            if (a === "Others") return 1; // 'Others' should come last
+            if (b === "Others") return -1;
+            return a.localeCompare(b); // Alphabetical sort
         });
 
-        function createListingItems() {
-            prisoners.forEach(prisoner => {
+        states.forEach(state => {
+            let divContainer = document.createElement("div");
+            divContainer.classList.add("title-section");
+
+            divContainer.innerHTML = `<h3>${state}</h3>`;
+            docFrag.appendChild(divContainer);
+
+            const prisonersGroup = prisoners.filter(prisoner =>
+                (state === "Others" && !prisoner.State) || prisoner.State === state
+            );
+
+            createListingItems(prisonersGroup, docFrag);
+        });
+
+        function createListingItems(prisonersGroup, docFrag) {
+            prisonersGroup.forEach(prisoner => {
                 let listItem = document.createElement("li");
                 listItem.classList.add("list-group-item");
 
                 let address = prisoner.cases[0];
-                let punishment =  prisoner.calculatedPunishment || prisoner.imprisonedFor;
+                let punishment = prisoner.calculatedPunishment || prisoner.imprisonedFor;
 
                 listItem.innerHTML = `<div class="item">
-                    <h5>${prisoner.name}</h5>
-                    <div>
-                        ${prisoner.inmateNumber ? `<div>#${prisoner.inmateNumber} </div>` : ""}
-                        ${ address ? address['Mailing address'] ? `<div>P.O Box: ${address['Mailing address']} </div>` : "" : ""}
-                    </div>
-                    <div class="">
-                        ${ prisoner.Birthdate ? `<div>Birthday: ${prisoner.Birthdate}</div>` : ""}
-                        ${ punishment ? `<div>Imprisoned for: ${punishment}</div>` : ""}
-                    </div>
-                </div>`;
+                <h5>${prisoner.name}</h5>
+                <div>
+                    ${prisoner.inmateNumber ? `<div>#${prisoner.inmateNumber} </div>` : ""}
+                    ${address ? address['Mailing address'] ? `<div>P.O Box: ${address['Mailing address']} </div>` : "" : ""}
+                </div>
+                <div class="">
+                    ${prisoner.Birthdate ? `<div>Birthday: ${prisoner.Birthdate}</div>` : ""}
+                    ${punishment ? `<div>Imprisoned for: ${punishment}</div>` : ""}
+                </div>
+            </div>`;
 
-                listItem.onclick = (e) => {
+                listItem.onclick = () => {
                     map.flyTo({
-                        center:[prisoner.longitude, prisoner.latitude],
-                        zoom:10
+                        center: [prisoner.longitude, prisoner.latitude],
+                        zoom: 10
                     });
 
                     renderCardContent([prisoner]);
                     document.getElementById("info-container").style.display = "block";
-                }
+                };
 
                 docFrag.append(listItem);
             });

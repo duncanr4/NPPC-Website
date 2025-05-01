@@ -1,10 +1,18 @@
 <?php
 
+use App\Http\Controllers\DonateController;
+use App\Http\Controllers\FormSubmissionController;
 use App\Http\Controllers\SiteController;
-use Illuminate\Support\Facades\Auth;
+use App\Views\ViewSupport;
 use Illuminate\Support\Facades\Route;
 
-Route::get('dev', fn () => Auth::user());
+Route::get('dev', fn () => ViewSupport::getMenuItems());
+
+Route::controller(DonateController::class)
+    ->group(function () {
+        Route::get('/donate-callback', 'callback');
+    });
+
 Route::controller(SiteController::class)
     ->group(function () {
         Route::get('/', 'home')->name('home');
@@ -15,5 +23,13 @@ Route::controller(SiteController::class)
         Route::get('annual-report', 'annualReport');
         Route::get('map', 'map');
         Route::get('faq', 'faq');
+        Route::get('staff', 'staff');
+        Route::get('volunteer', 'volunteer');
+        Route::get('board-of-directors', 'boardOfDirectors');
         Route::get('/{slug}', 'page');
+    });
+
+Route::controller(FormSubmissionController::class)
+    ->group(function () {
+        Route::post('/form/{form}', 'submit');
     });

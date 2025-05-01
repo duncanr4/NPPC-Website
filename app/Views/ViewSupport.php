@@ -15,11 +15,18 @@ abstract class ViewSupport {
         $response[] = new MenuItemDTO(title: 'News', href: '/news');
 
         $parentPages = Page::where('parent_id', null)->get();
+
         foreach ($parentPages as $page) {
             $children = [];
+
             foreach ($page->children as $child) {
                 $children[] = new MenuItemDTO(title: $child->title, href: $child->url);
             }
+
+            if ($page->slug === 'get-involved') {
+                $children[] = new MenuItemDTO(title: 'Volunteer', href: '/volunteer');
+            }
+
             $response[] = new MenuItemDTO(title: $page->title, href: $page->url, children: empty($children) ? null : $children);
         }
 
