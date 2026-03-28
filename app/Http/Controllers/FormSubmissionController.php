@@ -21,7 +21,7 @@ final class FormSubmissionController extends Controller {
         ]);
 
         $recaptchaResponse = $request->input('g-recaptcha-response');
-        $secretKey         = '6LdREZkqAAAAAPimv5LUoz8m1qgu2v9x-bQ10O45';
+        $secretKey         = config('services.recaptcha.secret');
 
         $client   = new Client();
         $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [

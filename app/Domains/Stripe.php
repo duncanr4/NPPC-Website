@@ -43,7 +43,7 @@ final class Stripe {
         } else {
             $lineItems = [
                 [
-                    'price'    => 'price_1QxABWEbGVuFzunH8cSynvNt',
+                    'price'    => config('stripe.donation_price_id'),
                     'quantity' => 1,
                 ],
             ];
@@ -52,7 +52,7 @@ final class Stripe {
         return $this->client->checkout->sessions->create([
             'mode'        => $mode,
             'line_items'  => $lineItems,
-            'success_url' => 'https://nationalpoliticalprisonercoalition.org/donate-callback?session_id={CHECKOUT_SESSION_ID}',
+            'success_url' => url('/donate-callback').'?session_id={CHECKOUT_SESSION_ID}',
         ]);
     }
 }
