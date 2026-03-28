@@ -25,6 +25,10 @@ final class SiteController extends Controller {
         return view('pages.volunteer');
     }
 
+    public function prisonerOutreach() {
+        return view('pages.prisoner-outreach');
+    }
+
     public function staff() {
         return view('pages.staff', ['staff' => Staff::getStaffMembers()]);
     }

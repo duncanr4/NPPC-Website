@@ -11,6 +11,8 @@
         <div class="absolute bottom-10 left-10 text-white  font-bold "><span class="text-9xl block">Justice</span><span class="flood-std block text-7xl">No matter what</span></div>
     </div>
 
+    @include('sections.impact-stats')
+
     <div class="container">
         <livewire:articles-grid :limit="5" />
         @include('sections.callout')

@@ -25,6 +25,7 @@ Route::controller(SiteController::class)
         Route::get('faq', 'faq');
         Route::get('staff', 'staff');
         Route::get('volunteer', 'volunteer');
+        Route::get('prisoner-outreach', 'prisonerOutreach');
         Route::get('board-of-directors', 'boardOfDirectors');
         Route::get('/{slug}', 'page');
     });
