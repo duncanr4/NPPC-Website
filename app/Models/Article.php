@@ -29,7 +29,8 @@ final class Article extends Model {
 
     protected $appends = ['url', 'image_url'];
     protected $casts   = [
-        'published_at' => 'datetime',
+        'published_at'  => 'datetime',
+        'citations_json' => 'array',
     ];
 
     public static function getBySlug(string $slug): self {
@@ -45,10 +46,17 @@ final class Article extends Model {
             return null;
         }
 
-        $citations = json_decode($this->citations_json, true);
+        $citations = $this->citations_json;
 
         return collect($citations)
-            ->mapWithKeys(fn ($item) => [$item['attributes']['title'] => $item['attributes']['content']])
+            ->mapWithKeys(function ($item) {
+                // Support old Nova Flexible format and new Filament Repeater format
+                if (isset($item['attributes'])) {
+                    return [$item['attributes']['title'] => $item['attributes']['content']];
+                }
+
+                return [$item['title'] ?? '' => $item['content'] ?? ''];
+            })
             ->toArray();
     }
 

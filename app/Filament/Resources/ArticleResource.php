@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\ArticleResource\Pages;
+use App\Models\Article;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class ArticleResource extends Resource {
+    protected static ?string $model = Article::class;
+    protected static ?string $navigationIcon = 'heroicon-o-newspaper';
+    protected static ?string $navigationGroup = 'Content';
+    protected static ?string $recordTitleAttribute = 'title';
+
+    public static function form(Form $form): Form {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('title')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\FileUpload::make('image')
+                    ->image()
+                    ->directory('articles'),
+                Forms\Components\MarkdownEditor::make('body')
+                    ->columnSpanFull(),
+                Forms\Components\DatePicker::make('published_at'),
+                Forms\Components\Select::make('category_id')
+                    ->relationship('category', 'title')
+                    ->nullable(),
+                Forms\Components\Select::make('author_id')
+                    ->relationship('author', 'name')
+                    ->nullable(),
+                Forms\Components\SpatieTagsInput::make('tags'),
+                Forms\Components\Repeater::make('citations_json')
+                    ->label('Citations')
+                    ->schema([
+                        Forms\Components\TextInput::make('title'),
+                        Forms\Components\MarkdownEditor::make('content'),
+                    ])
+                    ->columnSpanFull()
+                    ->defaultItems(0)
+                    ->collapsible(),
+            ]);
+    }
+
+    public static function table(Table $table): Table {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('title')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('category.title')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('author.name'),
+                Tables\Columns\TextColumn::make('published_at')
+                    ->date()
+                    ->sortable(),
+            ])
+            ->defaultSort('published_at', 'desc')
+            ->filters([])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getPages(): array {
+        return [
+            'index'  => Pages\ListArticles::route('/'),
+            'create' => Pages\CreateArticle::route('/create'),
+            'edit'   => Pages\EditArticle::route('/{record}/edit'),
+        ];
+    }
+}
