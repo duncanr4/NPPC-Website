@@ -7,9 +7,12 @@ use App\Filament\Resources\PrisonerResource\RelationManagers;
 use App\Models\Prisoner;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PrisonerResource extends Resource {
     protected static ?string $model = Prisoner::class;
@@ -36,9 +39,9 @@ class PrisonerResource extends Resource {
                             ->maxLength(255),
                         Forms\Components\Select::make('gender')
                             ->options([
-                                'male'   => 'Male',
-                                'female' => 'Female',
-                                'other'  => 'Other',
+                                'Male'   => 'Male',
+                                'Female' => 'Female',
+                                'Other'  => 'Other',
                             ]),
                         Forms\Components\TextInput::make('race')
                             ->maxLength(255),
@@ -55,6 +58,7 @@ class PrisonerResource extends Resource {
                             ->image()
                             ->directory('prisoners'),
                         Forms\Components\Textarea::make('description')
+                            ->rows(6)
                             ->columnSpanFull(),
                     ]),
 
@@ -125,31 +129,136 @@ class PrisonerResource extends Resource {
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('photo')
-                    ->circular(),
+                    ->circular()
+                    ->defaultImageUrl(fn () => 'https://ui-avatars.com/api/?background=6366f1&color=fff&name=?')
+                    ->size(50),
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable()
+                    ->description(fn (Prisoner $record): ?string => $record->aka ? "AKA: {$record->aka}" : null)
+                    ->searchable(['name', 'first_name', 'last_name', 'aka'])
+                    ->sortable()
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('inmate_number')
+                    ->label('ID #')
+                    ->prefix('#')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('age')
+                    ->suffix(fn (Prisoner $record): string => $record->death_date ? ' (Deceased)' : '')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('gender')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Male'   => 'info',
+                        'Female' => 'success',
+                        default  => 'gray',
+                    }),
+                Tables\Columns\TextColumn::make('race')
+                    ->badge()
+                    ->color('gray'),
                 Tables\Columns\TextColumn::make('era')
                     ->sortable(),
-                Tables\Columns\IconColumn::make('in_custody')
-                    ->boolean(),
-                Tables\Columns\IconColumn::make('released')
-                    ->boolean(),
                 Tables\Columns\TextColumn::make('state')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->state(function (Prisoner $record): string {
+                        $statuses = [];
+                        if ($record->in_custody) {
+                            $statuses[] = 'In Custody';
+                        }
+                        if ($record->in_exile || $record->currently_in_exile) {
+                            $statuses[] = 'In Exile';
+                        }
+                        if ($record->released) {
+                            $statuses[] = 'Released';
+                        }
+                        if ($record->awaiting_trial) {
+                            $statuses[] = 'Awaiting Trial';
+                        }
+
+                        return implode(', ', $statuses) ?: '-';
+                    })
+                    ->badge()
+                    ->color(fn (string $state): string => match (true) {
+                        str_contains($state, 'Custody') => 'danger',
+                        str_contains($state, 'Exile')   => 'warning',
+                        str_contains($state, 'Released') => 'success',
+                        str_contains($state, 'Awaiting') => 'info',
+                        default                          => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('years_in_prison')
                     ->sortable()
-                    ->label('Years'),
+                    ->label('Years')
+                    ->alignCenter(),
             ])
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->filters([
-                Tables\Filters\TernaryFilter::make('in_custody'),
-                Tables\Filters\TernaryFilter::make('released'),
-                Tables\Filters\TernaryFilter::make('in_exile'),
-                Tables\Filters\TernaryFilter::make('awaiting_trial'),
-            ])
+                // Status filter group matching Airtable's button filters
+                Tables\Filters\Filter::make('imprisoned_or_exiled')
+                    ->label('In Custody or Exiled')
+                    ->query(fn (Builder $query): Builder => $query->where(function ($q) {
+                        $q->where('in_custody', true)->orWhere('in_exile', true)->orWhere('currently_in_exile', true);
+                    })),
+                Tables\Filters\TernaryFilter::make('in_custody')
+                    ->label('In Custody'),
+                Tables\Filters\TernaryFilter::make('in_exile')
+                    ->label('In Exile'),
+                Tables\Filters\TernaryFilter::make('released')
+                    ->label('Released'),
+                Tables\Filters\TernaryFilter::make('awaiting_trial')
+                    ->label('Awaiting Trial'),
+
+                // Dropdown filters matching Airtable's multi-select filters
+                Tables\Filters\SelectFilter::make('gender')
+                    ->options(fn (): array => Prisoner::query()
+                        ->whereNotNull('gender')
+                        ->distinct()
+                        ->pluck('gender', 'gender')
+                        ->toArray()),
+                Tables\Filters\SelectFilter::make('race')
+                    ->options(fn (): array => Prisoner::query()
+                        ->whereNotNull('race')
+                        ->distinct()
+                        ->pluck('race', 'race')
+                        ->toArray()),
+                Tables\Filters\SelectFilter::make('era')
+                    ->options(fn (): array => Prisoner::query()
+                        ->whereNotNull('era')
+                        ->distinct()
+                        ->pluck('era', 'era')
+                        ->toArray()),
+                Tables\Filters\SelectFilter::make('state')
+                    ->options(fn (): array => Prisoner::query()
+                        ->whereNotNull('state')
+                        ->distinct()
+                        ->pluck('state', 'state')
+                        ->toArray()),
+                Tables\Filters\Filter::make('ideology')
+                    ->form([
+                        Forms\Components\TextInput::make('ideology')
+                            ->label('Ideology (contains)'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['ideology'],
+                            fn (Builder $query, $value): Builder => $query->whereJsonContains('ideologies', $value),
+                        );
+                    }),
+                Tables\Filters\Filter::make('affiliation_filter')
+                    ->form([
+                        Forms\Components\TextInput::make('affiliation')
+                            ->label('Affiliation (contains)'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['affiliation'],
+                            fn (Builder $query, $value): Builder => $query->whereJsonContains('affiliation', $value),
+                        );
+                    }),
+            ], layout: Tables\Enums\FiltersLayout::AboveContent)
+            ->filtersFormColumns(4)
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -157,6 +266,107 @@ class PrisonerResource extends Resource {
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist {
+        return $infolist
+            ->schema([
+                Infolists\Components\Section::make()
+                    ->schema([
+                        Infolists\Components\Split::make([
+                            Infolists\Components\ImageEntry::make('photo')
+                                ->circular()
+                                ->size(120)
+                                ->grow(false),
+                            Infolists\Components\Group::make([
+                                Infolists\Components\TextEntry::make('name')
+                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
+                                    ->weight('bold'),
+                                Infolists\Components\TextEntry::make('aka')
+                                    ->label('AKA')
+                                    ->visible(fn (Prisoner $record): bool => (bool) $record->aka),
+                                Infolists\Components\TextEntry::make('inmate_number')
+                                    ->label('Inmate #')
+                                    ->prefix('#')
+                                    ->visible(fn (Prisoner $record): bool => (bool) $record->inmate_number),
+                            ]),
+                        ]),
+                    ]),
+
+                Infolists\Components\Section::make('Personal Information')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('age'),
+                        Infolists\Components\TextEntry::make('gender'),
+                        Infolists\Components\TextEntry::make('race'),
+                        Infolists\Components\TextEntry::make('birthdate')
+                            ->date(),
+                        Infolists\Components\TextEntry::make('death_date')
+                            ->date()
+                            ->visible(fn (Prisoner $record): bool => (bool) $record->death_date),
+                    ])
+                    ->columns(3),
+
+                Infolists\Components\Section::make('Description')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('description')
+                            ->hiddenLabel()
+                            ->prose(),
+                    ])
+                    ->visible(fn (Prisoner $record): bool => (bool) $record->description),
+
+                Infolists\Components\Section::make('Political Information')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('ideologies')
+                            ->badge(),
+                        Infolists\Components\TextEntry::make('affiliation')
+                            ->badge(),
+                        Infolists\Components\TextEntry::make('era'),
+                    ])
+                    ->columns(3),
+
+                Infolists\Components\Section::make('Status')
+                    ->schema([
+                        Infolists\Components\IconEntry::make('in_custody')
+                            ->boolean(),
+                        Infolists\Components\IconEntry::make('released')
+                            ->boolean(),
+                        Infolists\Components\IconEntry::make('in_exile')
+                            ->boolean(),
+                        Infolists\Components\IconEntry::make('currently_in_exile')
+                            ->boolean(),
+                        Infolists\Components\IconEntry::make('awaiting_trial')
+                            ->boolean(),
+                        Infolists\Components\TextEntry::make('years_in_prison')
+                            ->suffix(' years'),
+                    ])
+                    ->columns(3),
+
+                Infolists\Components\Section::make('Location')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('state'),
+                        Infolists\Components\TextEntry::make('address'),
+                    ])
+                    ->columns(2)
+                    ->visible(fn (Prisoner $record): bool => (bool) $record->state || (bool) $record->address),
+
+                Infolists\Components\Section::make('Social & Web')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('website')
+                            ->url()
+                            ->openUrlInNewTab(),
+                        Infolists\Components\TextEntry::make('twitter')
+                            ->url(fn (Prisoner $record): ?string => $record->twitter ? "https://x.com/{$record->twitter}" : null)
+                            ->openUrlInNewTab(),
+                        Infolists\Components\TextEntry::make('facebook')
+                            ->url()
+                            ->openUrlInNewTab(),
+                        Infolists\Components\TextEntry::make('instagram')
+                            ->url(fn (Prisoner $record): ?string => $record->instagram ? "https://instagram.com/{$record->instagram}" : null)
+                            ->openUrlInNewTab(),
+                    ])
+                    ->columns(2)
+                    ->visible(fn (Prisoner $record): bool => (bool) $record->website || (bool) $record->twitter || (bool) $record->facebook || (bool) $record->instagram),
             ]);
     }
 
@@ -170,6 +380,7 @@ class PrisonerResource extends Resource {
         return [
             'index'  => Pages\ListPrisoners::route('/'),
             'create' => Pages\CreatePrisoner::route('/create'),
+            'view'   => Pages\ViewPrisoner::route('/{record}'),
             'edit'   => Pages\EditPrisoner::route('/{record}/edit'),
         ];
     }
