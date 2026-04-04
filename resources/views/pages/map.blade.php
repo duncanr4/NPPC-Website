@@ -328,7 +328,7 @@
     }
 
     async function loadPrisoners() {
-        let requestData = await fetch(`https://marisam-airtable.patrickdeamorim.workers.dev/`)
+        let requestData = await fetch(`/api/prisoners`)
             .then(res => res.json());
 
         let data = []
