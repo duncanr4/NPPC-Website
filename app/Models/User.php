@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use Laravel\Nova\Auth\Impersonatable;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -17,10 +18,9 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $site_id
  * @property Site   $site
  */
-final class User extends Authenticatable {
+final class User extends Authenticatable implements FilamentUser {
     use HasApiTokens;
     use HasFactory;
-    use Impersonatable;
     use Notifiable;
 
     public $incrementing = false;
@@ -50,12 +50,8 @@ final class User extends Authenticatable {
         });
     }
 
-    public function canImpersonate(): bool {
+    public function canAccessPanel(Panel $panel): bool {
         return $this->is_admin;
-    }
-
-    public function canBeImpersonated(): bool {
-        return (bool) $this->site_id;
     }
 
     public static function isAdmin(): bool {
