@@ -83,9 +83,9 @@ class ImportFromAirtable extends Command {
                 'birthdate'            => $this->parseDate($record['Birthdate'] ?? null),
                 'death_date'           => $this->parseDate($record['Death date'] ?? null),
                 'age'                  => is_numeric($record['Age'] ?? null) ? (int) $record['Age'] : null,
-                'ideologies'           => $this->jsonArr($record['Ideologies'] ?? null),
+                'ideologies'           => $this->toArray($record['Ideologies'] ?? null),
                 'era'                  => $this->str($record['Era'] ?? null),
-                'affiliation'          => $this->jsonArr($record['Affiliation'] ?? null),
+                'affiliation'          => $this->toArray($record['Affiliation'] ?? null),
                 'in_custody'           => (bool) ($record['In Custody'] ?? false),
                 'released'             => (bool) ($record['Released'] ?? false),
                 'in_exile'             => (bool) ($record['In Exile'] ?? false),
@@ -190,20 +190,20 @@ class ImportFromAirtable extends Command {
     }
 
     /**
-     * Convert a value to a JSON string for storage in a JSON column.
-     * If it's already a string, wraps it in an array.
+     * Ensure a value is a PHP array for Eloquent's array cast.
+     * If it's a string, wraps it in an array. Nulls stay null.
      */
-    private function jsonArr(mixed $value): ?string {
+    private function toArray(mixed $value): ?array {
         if ($value === null) {
             return null;
         }
 
         if (is_array($value)) {
-            return json_encode(array_values(array_filter($value, fn ($v) => $v !== null && $v !== '')));
+            return array_values(array_filter($value, fn ($v) => $v !== null && $v !== ''));
         }
 
         if (is_string($value) && $value !== '') {
-            return json_encode([$value]);
+            return [$value];
         }
 
         return null;
