@@ -71,7 +71,7 @@ export default function useAirtable() {
     }
 
     const fetchRecords = async () => {
-        const req = await axios.get(`https://marisam-airtable.patrickdeamorim.workers.dev/`)
+        const req = await axios.get(`/api/prisoners`)
         const prisoners: Prisoner[] = req.data
 
         if (!prisoners.length) {
