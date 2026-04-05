@@ -3,9 +3,11 @@
 namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
-use Illuminate\Support\Facades\Storage;
+use Livewire\WithFileUploads;
 
 class FileExplorer extends Page {
+    use WithFileUploads;
+
     protected static ?string $navigationIcon = 'heroicon-o-folder-open';
     protected static ?string $navigationLabel = 'File Explorer';
     protected static ?string $navigationGroup = 'Developer Tools';
@@ -15,6 +17,11 @@ class FileExplorer extends Page {
     public string $currentPath = '';
     public ?string $fileContent = null;
     public ?string $viewingFile = null;
+    public string $searchQuery = '';
+    public array $searchResults = [];
+    public bool $isSearching = false;
+    public string $newFolderName = '';
+    public $uploadedFiles = [];
 
     public function mount(): void {
         $this->currentPath = '';
@@ -24,6 +31,7 @@ class FileExplorer extends Page {
         $this->currentPath = $path;
         $this->fileContent = null;
         $this->viewingFile = null;
+        $this->clearSearch();
     }
 
     public function goUp(): void {
@@ -47,8 +55,7 @@ class FileExplorer extends Page {
 
         $size = filesize($fullPath);
 
-        // Don't try to display binary or huge files
-        if ($size > 512000) { // 500KB
+        if ($size > 512000) {
             $this->fileContent = "(File too large to display: ".number_format($size / 1024, 1)." KB)";
             $this->viewingFile = $path;
 
@@ -56,7 +63,12 @@ class FileExplorer extends Page {
         }
 
         if ($this->isBinaryFile($fullPath)) {
-            $this->fileContent = "(Binary file: ".number_format($size / 1024, 1)." KB)";
+            $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'])) {
+                $this->fileContent = '__IMAGE__';
+            } else {
+                $this->fileContent = "(Binary file: ".number_format($size / 1024, 1)." KB)";
+            }
             $this->viewingFile = $path;
 
             return;
@@ -71,58 +83,182 @@ class FileExplorer extends Page {
         $this->viewingFile = null;
     }
 
-    public function getViewData(): array {
-        $basePath = config('claude.repo_path', base_path());
-        $fullPath = $this->currentPath ? $basePath.DIRECTORY_SEPARATOR.$this->currentPath : $basePath;
+    // --- Search ---
 
-        $items = [];
+    public function search(): void {
+        $query = trim($this->searchQuery);
+        if (! $query) {
+            $this->clearSearch();
 
-        if (! is_dir($fullPath)) {
-            return ['items' => [], 'breadcrumbs' => []];
+            return;
         }
 
-        $entries = scandir($fullPath);
+        $this->isSearching = true;
+        $this->searchResults = [];
+        $basePath = config('claude.repo_path', base_path());
+
+        $this->searchDirectory($basePath, '', $query, 0);
+    }
+
+    public function clearSearch(): void {
+        $this->searchQuery = '';
+        $this->searchResults = [];
+        $this->isSearching = false;
+    }
+
+    private function searchDirectory(string $basePath, string $relativePath, string $query, int $depth): void {
+        if ($depth > 8 || count($this->searchResults) >= 100) {
+            return;
+        }
+
+        $fullPath = $relativePath ? $basePath.DIRECTORY_SEPARATOR.$relativePath : $basePath;
+
+        if (! is_dir($fullPath) || ! is_readable($fullPath)) {
+            return;
+        }
+
+        $entries = @scandir($fullPath);
+        if (! $entries) {
+            return;
+        }
 
         foreach ($entries as $entry) {
             if ($entry === '.' || $entry === '..') {
                 continue;
             }
 
-            // Skip common non-useful directories
-            if ($this->currentPath === '' && in_array($entry, ['node_modules', '.git'])) {
+            if (in_array($entry, ['.git', 'node_modules', 'vendor'])) {
                 continue;
             }
 
-            $entryPath = $this->currentPath ? $this->currentPath.DIRECTORY_SEPARATOR.$entry : $entry;
+            $entryPath = $relativePath ? $relativePath.DIRECTORY_SEPARATOR.$entry : $entry;
             $entryFullPath = $basePath.DIRECTORY_SEPARATOR.$entryPath;
-
             $isDir = is_dir($entryFullPath);
-            $size = $isDir ? null : filesize($entryFullPath);
-            $modified = filemtime($entryFullPath);
 
-            $items[] = [
-                'name'     => $entry,
-                'path'     => $entryPath,
-                'is_dir'   => $isDir,
-                'size'     => $size,
-                'modified' => $modified,
-                'ext'      => $isDir ? null : strtolower(pathinfo($entry, PATHINFO_EXTENSION)),
-            ];
+            // Match by name or extension
+            $matches = false;
+            if (str_starts_with($query, '.')) {
+                // Extension search: ".png" matches all png files
+                $ext = '.'.strtolower(pathinfo($entry, PATHINFO_EXTENSION));
+                $matches = ! $isDir && $ext === strtolower($query);
+            } else {
+                // Name search: case-insensitive substring
+                $matches = stripos($entry, $query) !== false;
+            }
+
+            if ($matches) {
+                $this->searchResults[] = [
+                    'name'     => $entry,
+                    'path'     => $entryPath,
+                    'dir'      => $relativePath ?: '/',
+                    'is_dir'   => $isDir,
+                    'size'     => $isDir ? null : @filesize($entryFullPath),
+                    'ext'      => $isDir ? null : strtolower(pathinfo($entry, PATHINFO_EXTENSION)),
+                ];
+
+                if (count($this->searchResults) >= 100) {
+                    return;
+                }
+            }
+
+            if ($isDir) {
+                $this->searchDirectory($basePath, $entryPath, $query, $depth + 1);
+            }
+        }
+    }
+
+    // --- Create Folder ---
+
+    public function createFolder(): void {
+        $name = trim($this->newFolderName);
+        if (! $name || ! preg_match('/^[a-zA-Z0-9_\-. ]+$/', $name)) {
+            return;
         }
 
-        // Sort: directories first, then alphabetical
-        usort($items, function ($a, $b) {
-            if ($a['is_dir'] && ! $b['is_dir']) {
-                return -1;
-            }
-            if (! $a['is_dir'] && $b['is_dir']) {
-                return 1;
+        $basePath = config('claude.repo_path', base_path());
+        $targetPath = $this->currentPath
+            ? $basePath.DIRECTORY_SEPARATOR.$this->currentPath.DIRECTORY_SEPARATOR.$name
+            : $basePath.DIRECTORY_SEPARATOR.$name;
+
+        if (! is_dir($targetPath)) {
+            mkdir($targetPath, 0755, true);
+        }
+
+        $this->newFolderName = '';
+    }
+
+    // --- Upload Files ---
+
+    public function uploadFiles(): void {
+        if (empty($this->uploadedFiles)) {
+            return;
+        }
+
+        $basePath = config('claude.repo_path', base_path());
+        $targetDir = $this->currentPath
+            ? $basePath.DIRECTORY_SEPARATOR.$this->currentPath
+            : $basePath;
+
+        foreach ($this->uploadedFiles as $file) {
+            $file->storeAs(
+                '',
+                $file->getClientOriginalName(),
+                ['disk' => 'local', 'root' => $targetDir]
+            );
+        }
+
+        $this->uploadedFiles = [];
+    }
+
+    // --- View Data ---
+
+    public function getViewData(): array {
+        $basePath = config('claude.repo_path', base_path());
+        $fullPath = $this->currentPath ? $basePath.DIRECTORY_SEPARATOR.$this->currentPath : $basePath;
+
+        $items = [];
+
+        if (is_dir($fullPath)) {
+            $entries = scandir($fullPath);
+
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+
+                if ($this->currentPath === '' && in_array($entry, ['node_modules', '.git'])) {
+                    continue;
+                }
+
+                $entryPath = $this->currentPath ? $this->currentPath.DIRECTORY_SEPARATOR.$entry : $entry;
+                $entryFullPath = $basePath.DIRECTORY_SEPARATOR.$entryPath;
+
+                $isDir = is_dir($entryFullPath);
+                $size = $isDir ? null : @filesize($entryFullPath);
+                $modified = @filemtime($entryFullPath);
+
+                $items[] = [
+                    'name'     => $entry,
+                    'path'     => $entryPath,
+                    'is_dir'   => $isDir,
+                    'size'     => $size,
+                    'modified' => $modified,
+                    'ext'      => $isDir ? null : strtolower(pathinfo($entry, PATHINFO_EXTENSION)),
+                ];
             }
 
-            return strcasecmp($a['name'], $b['name']);
-        });
+            usort($items, function ($a, $b) {
+                if ($a['is_dir'] && ! $b['is_dir']) {
+                    return -1;
+                }
+                if (! $a['is_dir'] && $b['is_dir']) {
+                    return 1;
+                }
 
-        // Build breadcrumbs
+                return strcasecmp($a['name'], $b['name']);
+            });
+        }
+
         $breadcrumbs = [['name' => 'Project Root', 'path' => '']];
         if ($this->currentPath) {
             $parts = explode(DIRECTORY_SEPARATOR, $this->currentPath);
@@ -133,9 +269,21 @@ class FileExplorer extends Page {
             }
         }
 
+        // Get image URL for preview
+        $imageUrl = null;
+        if ($this->fileContent === '__IMAGE__' && $this->viewingFile) {
+            $storagePrefix = 'storage/app/public/';
+            if (str_starts_with($this->viewingFile, $storagePrefix)) {
+                $imageUrl = asset('storage/'.substr($this->viewingFile, strlen($storagePrefix)));
+            } else {
+                $imageUrl = asset($this->viewingFile);
+            }
+        }
+
         return [
             'items'       => $items,
             'breadcrumbs' => $breadcrumbs,
+            'imageUrl'    => $imageUrl,
         ];
     }
 
@@ -155,18 +303,20 @@ class FileExplorer extends Page {
 
     public function getFileIcon(string $ext): string {
         return match ($ext) {
-            'php'                    => 'php',
-            'js', 'ts'               => 'js',
-            'vue'                    => 'vue',
-            'css', 'scss', 'sass'    => 'css',
-            'html', 'blade.php'      => 'html',
-            'json'                   => 'json',
-            'md'                     => 'md',
-            'yml', 'yaml'            => 'yaml',
-            'env'                    => 'env',
+            'php'                                       => 'php',
+            'js', 'ts'                                  => 'js',
+            'vue'                                       => 'vue',
+            'css', 'scss', 'sass'                       => 'css',
+            'html'                                      => 'html',
+            'json'                                      => 'json',
+            'md'                                        => 'md',
+            'yml', 'yaml'                               => 'yaml',
+            'env'                                       => 'env',
             'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg' => 'img',
-            'sql', 'sqlite'          => 'db',
-            default                  => 'file',
+            'sql', 'sqlite'                             => 'db',
+            'mp4', 'webm', 'mov'                        => 'video',
+            'pdf'                                       => 'pdf',
+            default                                     => 'file',
         };
     }
 
