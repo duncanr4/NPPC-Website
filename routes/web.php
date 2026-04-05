@@ -19,7 +19,8 @@ Route::controller(SiteController::class)
         Route::get('/site', 'site');
         Route::get('/settings', 'settings');
         Route::get('/news/{slug}', 'article');
-        Route::get('history', 'timeline');
+        Route::get('history', 'history');
+        Route::get('timeline', 'timeline');
         Route::get('annual-report', 'annualReport');
         Route::get('map', 'map');
         Route::get('faq', 'faq');

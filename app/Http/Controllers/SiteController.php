@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnnualReport;
 use App\Models\Article;
+use App\Models\HistoryEra;
 use App\Models\Page;
 use App\Models\Staff;
 use App\Models\Timeline;
@@ -19,6 +20,10 @@ final class SiteController extends Controller {
 
     public function timeline() {
         return view('pages.timeline', ['timelines' => Timeline::query()->orderBy('year')->get()]);
+    }
+
+    public function history() {
+        return view('pages.history', ['eras' => HistoryEra::with('topics')->orderBy('sort_order')->get()]);
     }
 
     public function volunteer() {
