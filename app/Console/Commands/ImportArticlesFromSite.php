@@ -60,6 +60,7 @@ class ImportArticlesFromSite extends Command {
         $imported = 0;
         $skipped = 0;
         $failed = 0;
+        $errors = [];
 
         foreach ($articleUrls as $url) {
             try {
@@ -75,6 +76,7 @@ class ImportArticlesFromSite extends Command {
                 $articleData = $this->scrapeArticle($url);
 
                 if (! $articleData) {
+                    $errors[] = "{$url} — Could not extract title from page";
                     $failed++;
                     $bar->advance();
                     continue;
@@ -118,8 +120,7 @@ class ImportArticlesFromSite extends Command {
 
                 $imported++;
             } catch (\Throwable $e) {
-                $this->newLine();
-                $this->warn("Failed: {$url} — {$e->getMessage()}");
+                $errors[] = "{$url} — {$e->getMessage()}";
                 $failed++;
             }
 
@@ -137,6 +138,14 @@ class ImportArticlesFromSite extends Command {
             ['Skipped (already exists)', $skipped],
             ['Failed', $failed],
         ]);
+
+        if (! empty($errors)) {
+            $this->newLine();
+            $this->error('Errors:');
+            foreach ($errors as $error) {
+                $this->line("  - {$error}");
+            }
+        }
 
         return self::SUCCESS;
     }
