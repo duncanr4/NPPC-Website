@@ -1,0 +1,427 @@
+@php use App\Models\HistoryEra; @endphp
+@php
+/** @var HistoryEra[] $eras */
+@endphp
+
+@extends('app')
+
+@section('head')
+<style>
+:root {
+  --h-accent: #5660fe;
+  --h-dim: rgba(255,255,255,0.5);
+  --h-faint: rgba(255,255,255,0.08);
+}
+
+/* Progress Bar */
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: var(--h-accent);
+  z-index: 9999;
+  width: 0%;
+}
+
+/* Era Nav */
+.era-nav {
+  position: sticky;
+  top: 0; z-index: 100;
+  background: rgba(0,0,0,0.94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--h-faint);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.era-nav::-webkit-scrollbar { display: none; }
+.era-nav-inner {
+  display: flex;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+.era-nav a {
+  display: inline-block;
+  padding: 14px 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--h-dim);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.era-nav a:hover { color: #fff; }
+.era-nav a.active {
+  color: #fff;
+  border-bottom-color: var(--h-accent);
+}
+
+/* Hero */
+.history-hero {
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 16px;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+.history-hero h1 {
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1.06;
+  margin-bottom: 1.5rem;
+  color: #fff;
+}
+.history-hero p {
+  font-size: 1.15rem;
+  color: var(--h-dim);
+  line-height: 1.7;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.hero-scroll-hint {
+  margin-top: 3rem;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Sidecar Layout */
+.sidecar {
+  position: relative;
+  display: flex;
+  scroll-margin-top: 50px;
+}
+.sidecar-narrative {
+  width: 45%;
+  position: relative;
+  z-index: 2;
+}
+.sidecar-visual {
+  width: 55%;
+  position: sticky;
+  top: 50px;
+  height: calc(100vh - 50px);
+  overflow: hidden;
+}
+.visual-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.visual-layer.active { opacity: 1; }
+.visual-layer-bg {
+  position: absolute;
+  inset: 0;
+}
+.visual-layer-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.4;
+}
+.visual-caption {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 60px 30px 30px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+  z-index: 2;
+}
+.visual-caption-era {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1;
+  opacity: 0.3;
+  color: #fff;
+}
+.visual-caption-label {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 4px;
+}
+
+/* Steps */
+.step {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 60px 40px 60px 16px;
+}
+.step-content {
+  opacity: 0.2;
+  transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  max-width: 420px;
+}
+.step.active .step-content {
+  opacity: 1;
+  transform: translateY(0);
+}
+.step-era-cover .step-content { max-width: 440px; }
+.step-era-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--h-accent);
+  margin-bottom: 0.8rem;
+  display: block;
+}
+.step-era-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+.step-era-desc {
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.7;
+}
+.step-topic-date {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--h-accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+.step-topic-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 0.9rem;
+  color: #fff;
+}
+.step-topic-summary {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.75;
+}
+.step-divider {
+  width: 40px;
+  height: 1px;
+  background: rgba(255,255,255,0.2);
+  margin-bottom: 1.2rem;
+}
+
+/* CTA */
+.history-cta {
+  text-align: center;
+  padding: 6rem 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.history-cta h2 {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+.history-cta p {
+  font-size: 1rem;
+  color: var(--h-dim);
+  margin-bottom: 2rem;
+  line-height: 1.7;
+}
+.history-cta-btn {
+  display: inline-block;
+  background: var(--h-accent);
+  color: #fff;
+  padding: 14px 36px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: background 0.2s;
+}
+.history-cta-btn:hover { background: #6e76ff; }
+
+/* Visual BG tints */
+.vbg-1700 { background: linear-gradient(160deg, #1a1810 0%, #2a2418 50%, #1a1508 100%); }
+.vbg-sedition { background: linear-gradient(140deg, #1a1510 0%, #2a1e15 40%, #3a2a18 100%); }
+.vbg-1800 { background: linear-gradient(160deg, #14101a 0%, #20152a 50%, #14101a 100%); }
+.vbg-abolition { background: linear-gradient(140deg, #12101e 0%, #201828 50%, #2a1e35 100%); }
+.vbg-civilwar { background: linear-gradient(140deg, #1a1012 0%, #2a181e 50%, #351e25 100%); }
+.vbg-1900 { background: linear-gradient(160deg, #0a1014 0%, #0f1a22 50%, #0a1014 100%); }
+.vbg-labor { background: linear-gradient(140deg, #101a12 0%, #18281a 50%, #0f2010 100%); }
+.vbg-suffrage { background: linear-gradient(140deg, #1a121a 0%, #281828 50%, #201020 100%); }
+.vbg-redscare { background: linear-gradient(140deg, #1a1414 0%, #2a1e1e 50%, #201515 100%); }
+.vbg-ww1 { background: linear-gradient(140deg, #14141a 0%, #1e1e28 50%, #151520 100%); }
+.vbg-mid1900 { background: linear-gradient(160deg, #0e0a14 0%, #16102a 50%, #0e0a14 100%); }
+.vbg-ww2 { background: linear-gradient(140deg, #12140e 0%, #1a200f 50%, #141810 100%); }
+.vbg-mccarthy { background: linear-gradient(140deg, #14100e 0%, #20180f 50%, #181210 100%); }
+.vbg-civilrights { background: linear-gradient(140deg, #0e1214 0%, #0f1a20 50%, #0a1418 100%); }
+.vbg-vietnam { background: linear-gradient(140deg, #141210 0%, #201a15 50%, #181410 100%); }
+.vbg-late1900 { background: linear-gradient(160deg, #0a0e14 0%, #101822 50%, #0a0e14 100%); }
+.vbg-cointelpro { background: linear-gradient(140deg, #100e14 0%, #18142a 50%, #100e18 100%); }
+.vbg-puertorico { background: linear-gradient(140deg, #0e1410 0%, #142018 50%, #0e1810 100%); }
+.vbg-2000 { background: linear-gradient(160deg, #0a0a16 0%, #0f0f28 50%, #0a0a16 100%); }
+.vbg-terror { background: linear-gradient(140deg, #10101a 0%, #181828 50%, #121220 100%); }
+.vbg-green { background: linear-gradient(140deg, #0e140e 0%, #142014 50%, #101810 100%); }
+.vbg-anon { background: linear-gradient(140deg, #0e1018 0%, #141828 50%, #101420 100%); }
+.vbg-occupy { background: linear-gradient(140deg, #14120e 0%, #201a10 50%, #181410 100%); }
+.vbg-blm { background: linear-gradient(140deg, #10101a 0%, #181828 50%, #121220 100%); }
+
+@@media (max-width: 900px) {
+  .sidecar { flex-direction: column; }
+  .sidecar-narrative { width: 100%; }
+  .sidecar-visual { width: 100%; position: relative; top: auto; height: 50vh; }
+  .step { min-height: auto; padding: 40px 16px; }
+  .history-hero h1 { font-size: 2.2rem; }
+  .step-era-title { font-size: 1.6rem; }
+  .step-topic-title { font-size: 1.3rem; }
+  .visual-caption-era { font-size: 2.5rem; }
+}
+</style>
+@endsection
+
+@section('body')
+<div class="bg-black">
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Era Nav -->
+    <nav class="era-nav" id="eraNav">
+        <div class="era-nav-inner">
+            @foreach($eras as $i => $era)
+                <a href="#sc-{{ $era->slug }}" @if($i === 0) class="active" @endif>{{ $era->nav_label }}</a>
+            @endforeach
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="history-hero">
+        <h1>The History of Political Prisoners in the United States</h1>
+        <p>From the Sedition Act of 1798 to the Black Lives Matter movement, the United States has a long and often hidden history of imprisoning people for their political beliefs, activism, and resistance.</p>
+        <div class="hero-scroll-hint">Scroll to explore &darr;</div>
+    </section>
+
+    <!-- Eras -->
+    @foreach($eras as $era)
+    <section class="sidecar" id="sc-{{ $era->slug }}" data-era="{{ $era->nav_label }}">
+        <div class="sidecar-narrative">
+            <!-- Era cover step -->
+            <div class="step step-era-cover @if($loop->first) active @endif" data-visual="v-{{ $era->slug }}-cover">
+                <div class="step-content">
+                    <span class="step-era-tag">{{ $era->tag_line }}</span>
+                    <h2 class="step-era-title">{{ $era->heading }}</h2>
+                    <p class="step-era-desc">{{ $era->description }}</p>
+                </div>
+            </div>
+
+            <!-- Topic steps -->
+            @foreach($era->topics as $topic)
+            <div class="step" data-visual="v-topic-{{ $topic->id }}">
+                <div class="step-content">
+                    <div class="step-divider"></div>
+                    <div class="step-topic-date">{{ $topic->date_label }}</div>
+                    <h3 class="step-topic-title">{{ $topic->title }}</h3>
+                    <p class="step-topic-summary">{{ $topic->summary }}</p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <div class="sidecar-visual">
+            <!-- Era cover visual -->
+            <div class="visual-layer @if($loop->first) active @endif" id="v-{{ $era->slug }}-cover">
+                <div class="visual-layer-bg {{ $era->bg_class }}"></div>
+                <div class="visual-caption">
+                    <span class="visual-caption-era">{{ $era->caption_era }}</span>
+                    <span class="visual-caption-label">{{ $era->caption_label }}</span>
+                </div>
+            </div>
+
+            <!-- Topic visuals -->
+            @foreach($era->topics as $topic)
+            <div class="visual-layer" id="v-topic-{{ $topic->id }}">
+                <div class="visual-layer-bg {{ $topic->bg_class }}"></div>
+                @if($topic->image)
+                    <div class="visual-layer-img" style="background-image: url('{{ Storage::url($topic->image) }}')"></div>
+                @endif
+                <div class="visual-caption">
+                    <span class="visual-caption-era">{{ $topic->caption_era }}</span>
+                    <span class="visual-caption-label">{{ $topic->caption_label }}</span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </section>
+    @endforeach
+
+    <!-- CTA -->
+    <section class="history-cta">
+        <h2>The Fight Continues</h2>
+        <p>Today, political prisoners remain incarcerated across the United States. Learn about their cases and how you can take action.</p>
+        <a href="/database" class="history-cta-btn">View Prisoner Profiles</a>
+    </section>
+</div>
+
+<script>
+// Scrollytelling Engine
+document.querySelectorAll('.sidecar').forEach(sidecar => {
+    const steps = sidecar.querySelectorAll('.step');
+    const layers = sidecar.querySelectorAll('.visual-layer');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const targetId = entry.target.dataset.visual;
+                steps.forEach(s => s.classList.remove('active'));
+                entry.target.classList.add('active');
+                layers.forEach(l => {
+                    if (l.id === targetId) {
+                        if (!l.classList.contains('active')) l.classList.add('active');
+                    } else {
+                        l.classList.remove('active');
+                    }
+                });
+            }
+        });
+    }, { root: null, rootMargin: '-30% 0px -30% 0px', threshold: 0 });
+
+    steps.forEach(step => observer.observe(step));
+});
+
+// Era Nav Tracking
+const sidecars = document.querySelectorAll('.sidecar');
+const eraLinks = document.querySelectorAll('.era-nav a');
+
+const eraObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const id = entry.target.id;
+            eraLinks.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+            });
+        }
+    });
+}, { threshold: 0.1, rootMargin: '-50px 0px -50% 0px' });
+
+sidecars.forEach(s => eraObserver.observe(s));
+
+// Smooth scroll for nav
+eraLinks.forEach(link => {
+    link.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelector(link.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+    });
+});
+
+// Progress Bar
+window.addEventListener('scroll', () => {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    document.getElementById('progressBar').style.width = (window.scrollY / h * 100) + '%';
+});
+</script>
+@endsection
