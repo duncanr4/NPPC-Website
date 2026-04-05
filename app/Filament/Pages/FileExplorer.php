@@ -22,6 +22,8 @@ class FileExplorer extends Page {
     public bool $isSearching = false;
     public string $newFolderName = '';
     public $uploadedFiles = [];
+    public ?string $renamingFile = null;
+    public string $newFileName = '';
 
     public function mount(): void {
         $this->currentPath = '';
@@ -210,6 +212,71 @@ class FileExplorer extends Page {
         $this->uploadedFiles = [];
     }
 
+    // --- Rename ---
+
+    public function startRename(string $path): void {
+        $this->renamingFile = $path;
+        $this->newFileName = basename($path);
+    }
+
+    public function cancelRename(): void {
+        $this->renamingFile = null;
+        $this->newFileName = '';
+    }
+
+    public function renameFile(): void {
+        if (! $this->renamingFile || ! $this->newFileName) {
+            return;
+        }
+
+        $name = trim($this->newFileName);
+        if (! $name || ! preg_match('/^[a-zA-Z0-9_\-. ()]+$/', $name)) {
+            return;
+        }
+
+        $basePath = config('claude.repo_path', base_path());
+        $oldFullPath = $basePath.DIRECTORY_SEPARATOR.$this->renamingFile;
+        $newFullPath = dirname($oldFullPath).DIRECTORY_SEPARATOR.$name;
+
+        if (! file_exists($oldFullPath) || file_exists($newFullPath)) {
+            return;
+        }
+
+        rename($oldFullPath, $newFullPath);
+
+        // If we were viewing this file, update the viewer
+        if ($this->viewingFile === $this->renamingFile) {
+            $this->viewingFile = dirname($this->renamingFile).DIRECTORY_SEPARATOR.$name;
+            if (str_starts_with($this->viewingFile, '.'.DIRECTORY_SEPARATOR)) {
+                $this->viewingFile = substr($this->viewingFile, 2);
+            }
+        }
+
+        $this->renamingFile = null;
+        $this->newFileName = '';
+    }
+
+    // --- Delete ---
+
+    public function deleteFile(string $path): void {
+        $basePath = config('claude.repo_path', base_path());
+        $fullPath = $basePath.DIRECTORY_SEPARATOR.$path;
+
+        if (is_file($fullPath)) {
+            unlink($fullPath);
+        } elseif (is_dir($fullPath)) {
+            // Only delete empty directories for safety
+            $contents = array_diff(scandir($fullPath), ['.', '..']);
+            if (empty($contents)) {
+                rmdir($fullPath);
+            }
+        }
+
+        if ($this->viewingFile === $path) {
+            $this->closeFile();
+        }
+    }
+
     // --- View Data ---
 
     public function getViewData(): array {
@@ -272,11 +339,22 @@ class FileExplorer extends Page {
         // Get image URL for preview
         $imageUrl = null;
         if ($this->fileContent === '__IMAGE__' && $this->viewingFile) {
-            $storagePrefix = 'storage/app/public/';
-            if (str_starts_with($this->viewingFile, $storagePrefix)) {
-                $imageUrl = asset('storage/'.substr($this->viewingFile, strlen($storagePrefix)));
-            } else {
-                $imageUrl = asset($this->viewingFile);
+            $imageUrl = $this->resolveImageUrl($this->viewingFile);
+        }
+
+        // Get image dimensions if available
+        $imageMeta = null;
+        if ($imageUrl && $this->viewingFile) {
+            $imgFullPath = $basePath.DIRECTORY_SEPARATOR.$this->viewingFile;
+            if (is_file($imgFullPath)) {
+                $size = @filesize($imgFullPath);
+                $dims = @getimagesize($imgFullPath);
+                $imageMeta = [
+                    'size'   => $this->formatSize($size),
+                    'width'  => $dims ? $dims[0] : null,
+                    'height' => $dims ? $dims[1] : null,
+                    'type'   => $dims ? image_type_to_mime_type($dims[2]) : null,
+                ];
             }
         }
 
@@ -284,7 +362,25 @@ class FileExplorer extends Page {
             'items'       => $items,
             'breadcrumbs' => $breadcrumbs,
             'imageUrl'    => $imageUrl,
+            'imageMeta'   => $imageMeta,
         ];
+    }
+
+    private function resolveImageUrl(string $relativePath): ?string {
+        // storage/app/public/... -> served via /storage/...
+        if (str_starts_with($relativePath, 'storage'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR)) {
+            $webPath = substr($relativePath, strlen('storage'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR));
+
+            return asset('storage/'.$webPath);
+        }
+
+        // public/... -> served directly
+        if (str_starts_with($relativePath, 'public'.DIRECTORY_SEPARATOR)) {
+            return asset(substr($relativePath, strlen('public'.DIRECTORY_SEPARATOR)));
+        }
+
+        // Fallback: serve via a data URI route
+        return route('filament.admin.pages.file-explorer').'?preview='.urlencode($relativePath);
     }
 
     public function formatSize(?int $bytes): string {

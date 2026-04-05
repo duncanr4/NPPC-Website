@@ -35,6 +35,9 @@
         .fe-btn-primary { background: #6366f1; border-color: #6366f1; }
         .fe-btn-primary:hover { background: #5558e6; }
         .fe-search-result-dir { font-size: 11px; color: rgba(255,255,255,0.35); margin-left: 28px; }
+        .fe-action-btn { background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.15s; display: inline-flex; }
+        .fe-action-btn:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.1); }
+        .fe-action-delete:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
     </style>
 
     {{-- Top Bar: Breadcrumbs + Search + Actions --}}
@@ -136,11 +139,28 @@
         </x-filament::section>
     @endif
 
+    {{-- Rename Modal --}}
+    @if($renamingFile)
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; display: flex; align-items: center; justify-content: center;">
+            <div style="background: #1e1e2e; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 24px; width: 420px; max-width: 90vw;">
+                <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Rename</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 12px; font-family: monospace;">{{ $renamingFile }}</div>
+                <form wire:submit="renameFile">
+                    <input type="text" wire:model="newFileName" class="fe-search-input" style="width: 100%; margin-bottom: 16px;" autofocus>
+                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <button type="button" wire:click="cancelRename" class="fe-btn">Cancel</button>
+                        <button type="submit" class="fe-btn fe-btn-primary">Rename</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
     {{-- Main Content --}}
     @if(!$isSearching)
         <div style="display: flex; gap: 24px;">
             {{-- File List --}}
-            <div style="flex: {{ $fileContent !== null ? '1' : '1' }}; min-width: 0;">
+            <div style="flex: 1; min-width: 0;">
                 <x-filament::section>
                     @if($currentPath)
                         <div class="fe-row" wire:click="goUp" style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -155,18 +175,13 @@
                                 <th>Name</th>
                                 <th style="width: 100px; text-align: right;">Size</th>
                                 <th style="width: 160px; text-align: right;">Modified</th>
+                                <th style="width: 90px; text-align: right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($items as $item)
-                                <tr class="fe-row"
-                                    @if($item['is_dir'])
-                                        wire:click="navigateTo('{{ $item['path'] }}')"
-                                    @else
-                                        wire:click="viewFile('{{ $item['path'] }}')"
-                                    @endif
-                                >
-                                    <td>
+                                <tr class="fe-row">
+                                    <td @if($item['is_dir']) wire:click="navigateTo('{{ $item['path'] }}')" @else wire:click="viewFile('{{ $item['path'] }}')" @endif>
                                         @if($item['is_dir'])
                                             <svg xmlns="http://www.w3.org/2000/svg" class="fe-icon fe-folder" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>
                                         @else
@@ -180,12 +195,22 @@
                                     <td style="text-align: right; color: rgba(255,255,255,0.4); font-size: 13px;">
                                         {{ date('M j, Y g:ia', $item['modified']) }}
                                     </td>
+                                    <td style="text-align: right;">
+                                        <span style="display: inline-flex; gap: 4px;">
+                                            <button wire:click="startRename('{{ $item['path'] }}')" class="fe-action-btn" title="Rename">
+                                                <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                                            </button>
+                                            <button wire:click="deleteFile('{{ $item['path'] }}')" wire:confirm="Delete '{{ $item['name'] }}'? This cannot be undone." class="fe-action-btn fe-action-delete" title="Delete">
+                                                <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                            </button>
+                                        </span>
+                                    </td>
                                 </tr>
                             @endforeach
 
                             @if(empty($items))
                                 <tr>
-                                    <td colspan="3" style="text-align: center; color: rgba(255,255,255,0.4); padding: 24px;">Empty directory</td>
+                                    <td colspan="4" style="text-align: center; color: rgba(255,255,255,0.4); padding: 24px;">Empty directory</td>
                                 </tr>
                             @endif
                         </tbody>
@@ -193,19 +218,37 @@
                 </x-filament::section>
             </div>
 
-            {{-- File Viewer Panel --}}
+            {{-- File Viewer / Image Preview Panel --}}
             @if($fileContent !== null)
                 <div style="flex: 1; min-width: 0;">
                     <x-filament::section>
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                            <span class="font-mono" style="font-size: 13px; color: rgba(255,255,255,0.8);">{{ $viewingFile }}</span>
-                            <button wire:click="closeFile" style="color: rgba(255,255,255,0.5); cursor: pointer; background: none; border: none; font-size: 20px; line-height: 1;">&times;</button>
-                        </div>
-                        @if($fileContent === '__IMAGE__' && $imageUrl)
-                            <div style="text-align: center; padding: 16px;">
-                                <img src="{{ $imageUrl }}" style="max-width: 100%; max-height: 500px; border-radius: 4px;">
+                            <span class="font-mono" style="font-size: 13px; color: rgba(255,255,255,0.8);">{{ basename($viewingFile) }}</span>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button wire:click="startRename('{{ $viewingFile }}')" class="fe-btn" style="padding: 4px 10px; font-size: 12px;">Rename</button>
+                                <button wire:click="closeFile" style="color: rgba(255,255,255,0.5); cursor: pointer; background: none; border: none; font-size: 20px; line-height: 1;">&times;</button>
                             </div>
+                        </div>
+
+                        @if($fileContent === '__IMAGE__' && $imageUrl)
+                            {{-- Image Preview --}}
+                            <div style="text-align: center; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <img src="{{ $imageUrl }}" style="max-width: 100%; max-height: 500px; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                            </div>
+                            @if($imageMeta)
+                                <div style="display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.5);">
+                                    @if($imageMeta['width'] && $imageMeta['height'])
+                                        <span>{{ $imageMeta['width'] }} &times; {{ $imageMeta['height'] }} px</span>
+                                    @endif
+                                    <span>{{ $imageMeta['size'] }}</span>
+                                    @if($imageMeta['type'])
+                                        <span>{{ $imageMeta['type'] }}</span>
+                                    @endif
+                                </div>
+                            @endif
+                            <div style="margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; font-family: monospace;">{{ $viewingFile }}</div>
                         @else
+                            {{-- Code / Text Preview --}}
                             <div style="max-height: 600px; overflow: auto;">
                                 <pre class="whitespace-pre-wrap text-xs font-mono bg-gray-900 text-gray-100 p-4" style="margin: 0; border-radius: 6px;">{{ $fileContent }}</pre>
                             </div>
