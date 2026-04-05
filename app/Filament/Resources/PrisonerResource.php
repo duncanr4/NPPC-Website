@@ -130,7 +130,7 @@ class PrisonerResource extends Resource {
             ->columns([
                 Tables\Columns\ImageColumn::make('photo')
                     ->circular()
-                    ->defaultImageUrl(fn () => 'https://ui-avatars.com/api/?background=6366f1&color=fff&name=?')
+                    ->disk('public')
                     ->size(50),
                 Tables\Columns\TextColumn::make('name')
                     ->description(fn (Prisoner $record): ?string => $record->aka ? "AKA: {$record->aka}" : null)
@@ -277,6 +277,7 @@ class PrisonerResource extends Resource {
                         Infolists\Components\Split::make([
                             Infolists\Components\ImageEntry::make('photo')
                                 ->circular()
+                                ->disk('public')
                                 ->size(120)
                                 ->grow(false),
                             Infolists\Components\Group::make([
