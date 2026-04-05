@@ -46,6 +46,10 @@ class FileExplorer extends Page {
     }
 
     public function viewFile(string $path): void {
+        // Always reset first so Livewire detects the change
+        $this->fileContent = null;
+        $this->viewingFile = null;
+
         $fullPath = $this->getFullPath($path);
 
         if (! is_file($fullPath) || ! is_readable($fullPath)) {
@@ -56,21 +60,43 @@ class FileExplorer extends Page {
         }
 
         $size = filesize($fullPath);
+        $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
 
-        if ($size > 512000) {
+        // Images — always preview regardless of size
+        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'ico', 'bmp'])) {
+            $this->fileContent = '__IMAGE__';
+            $this->viewingFile = $path;
+
+            return;
+        }
+
+        // PDFs — always preview regardless of size
+        if ($ext === 'pdf') {
+            $this->fileContent = '__PDF__';
+            $this->viewingFile = $path;
+
+            return;
+        }
+
+        // Videos — show info
+        if (in_array($ext, ['mp4', 'webm', 'mov', 'avi'])) {
+            $this->fileContent = '__VIDEO__';
+            $this->viewingFile = $path;
+
+            return;
+        }
+
+        // Text files — cap at 2MB
+        if ($size > 2097152) {
             $this->fileContent = "(File too large to display: ".number_format($size / 1024, 1)." KB)";
             $this->viewingFile = $path;
 
             return;
         }
 
+        // Other binary files
         if ($this->isBinaryFile($fullPath)) {
-            $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
-            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'])) {
-                $this->fileContent = '__IMAGE__';
-            } else {
-                $this->fileContent = "(Binary file: ".number_format($size / 1024, 1)." KB)";
-            }
+            $this->fileContent = "(Binary file: ".number_format($size / 1024, 1)." KB)";
             $this->viewingFile = $path;
 
             return;
@@ -336,33 +362,40 @@ class FileExplorer extends Page {
             }
         }
 
-        // Get image URL for preview
-        $imageUrl = null;
-        if ($this->fileContent === '__IMAGE__' && $this->viewingFile) {
-            $imageUrl = $this->resolveImageUrl($this->viewingFile);
+        // Get preview URL for images, PDFs, videos
+        $previewUrl = null;
+        if ($this->viewingFile && in_array($this->fileContent, ['__IMAGE__', '__PDF__', '__VIDEO__'])) {
+            $previewUrl = $this->resolveImageUrl($this->viewingFile);
         }
 
-        // Get image dimensions if available
-        $imageMeta = null;
-        if ($imageUrl && $this->viewingFile) {
-            $imgFullPath = $basePath.DIRECTORY_SEPARATOR.$this->viewingFile;
-            if (is_file($imgFullPath)) {
-                $size = @filesize($imgFullPath);
-                $dims = @getimagesize($imgFullPath);
-                $imageMeta = [
+        // Get file metadata
+        $fileMeta = null;
+        if ($previewUrl && $this->viewingFile) {
+            $metaFullPath = $basePath.DIRECTORY_SEPARATOR.$this->viewingFile;
+            if (is_file($metaFullPath)) {
+                $size = @filesize($metaFullPath);
+                $fileMeta = [
                     'size'   => $this->formatSize($size),
-                    'width'  => $dims ? $dims[0] : null,
-                    'height' => $dims ? $dims[1] : null,
-                    'type'   => $dims ? image_type_to_mime_type($dims[2]) : null,
+                    'width'  => null,
+                    'height' => null,
+                    'type'   => mime_content_type($metaFullPath) ?: null,
                 ];
+
+                if ($this->fileContent === '__IMAGE__') {
+                    $dims = @getimagesize($metaFullPath);
+                    if ($dims) {
+                        $fileMeta['width'] = $dims[0];
+                        $fileMeta['height'] = $dims[1];
+                    }
+                }
             }
         }
 
         return [
             'items'       => $items,
             'breadcrumbs' => $breadcrumbs,
-            'imageUrl'    => $imageUrl,
-            'imageMeta'   => $imageMeta,
+            'imageUrl'    => $previewUrl, // kept as imageUrl for template compat
+            'imageMeta'   => $fileMeta,
         ];
     }
 
