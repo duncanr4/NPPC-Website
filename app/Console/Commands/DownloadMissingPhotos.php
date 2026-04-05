@@ -126,7 +126,7 @@ class DownloadMissingPhotos extends Command {
                 array_map(fn ($m) => [
                     $m['prisoner']->name,
                     $m['matched'],
-                    Str::limit($m['photo_url'], 60),
+                    strlen($m['photo_url']) > 60 ? substr($m['photo_url'], 0, 57).'...' : $m['photo_url'],
                 ], $matched)
             );
             $this->warn('Dry run — no photos downloaded.');
