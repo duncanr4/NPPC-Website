@@ -142,7 +142,6 @@ class HomepageSettings extends Page implements HasForms {
                                             ->helperText('Percentage of screen height. 100 = full screen, 50 = half screen. Try 60-70 for a shorter hero.')
                                             ->live()
                                             ->afterStateUpdated(fn () => null),
-                                            ->default('100'),
                                         Forms\Components\Select::make('hero_overlay_opacity')
                                             ->label('Dark Overlay Opacity')
                                             ->options([
