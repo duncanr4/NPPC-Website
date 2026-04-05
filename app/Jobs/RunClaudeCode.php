@@ -63,7 +63,7 @@ class RunClaudeCode implements ShouldQueue {
                     'HOME' => env('HOME', '/root'),
                     'PATH' => env('PATH', '/usr/local/bin:/usr/bin:/bin'),
                 ])
-                ->run("{$claudeBinary} -p '{$escapedPrompt}' --no-input 2>&1");
+                ->run("{$claudeBinary} -p '{$escapedPrompt}' --verbose 2>&1");
 
             $output = $result->output();
 

@@ -5,20 +5,23 @@ use App\Models\Article;
 function renderArticle(Article $article, bool $large = false): string {
     if(!$article) return '';
 
-    $imgHeight = $large ? 'h-56 md:h-[600px]' : 'h-56';
+    $imgHeight = $large ? '600px' : '224px';
+    $imgUrl = $article->image ? $article->image_url : '';
+    $bgStyle = $imgUrl ? "background-image: url('{$imgUrl}');" : 'background-color: #1a1a1a;';
+
     return <<<EOB
-<div class="article-item mb-6">
-    <a href="{$article->url}" class="{$imgHeight} block overflow-hidden justify-center items-center bg-center bg-cover" style="background-image: url('{$article->image_url}')"></a>
+<div class="article-item" style="margin-bottom: 24px;">
+    <a href="{$article->url}" style="display: block; height: {$imgHeight}; overflow: hidden; background-size: cover; background-position: center; {$bgStyle}"></a>
     <div class="line"></div>
-    <h5 class="mt-6">{$article->category?->title}</h5>
-    <a class="text-xl text-white" href="{$article->url}">{$article->title}</a>
+    <h5 style="margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.05em;">{$article->category?->title}</h5>
+    <a style="font-size: 18px; color: #fff; display: block; margin-top: 4px; line-height: 1.4;" href="{$article->url}">{$article->title}</a>
 </div>
 EOB;
 
 }
 ?>
 <section >
-    <h1 class = "text-6xl mt-12 mb-12" > News</h1 >
+    <h1 style="font-size: 3.75rem; margin-top: 48px; margin-bottom: 48px; font-weight: 300; color: #fff;">News</h1>
     <div class = "line mt-8" ></div >
 
     <div class = "py-12" >
