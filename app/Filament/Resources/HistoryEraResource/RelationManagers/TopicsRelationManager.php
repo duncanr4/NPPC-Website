@@ -48,6 +48,9 @@ class TopicsRelationManager extends RelationManager {
     public function table(Table $table): Table {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('image')
+                    ->circular()
+                    ->defaultImageUrl(fn () => null),
                 Tables\Columns\TextColumn::make('date_label')
                     ->label('Date'),
                 Tables\Columns\TextColumn::make('title')
