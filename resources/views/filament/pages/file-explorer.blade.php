@@ -148,7 +148,7 @@
 
         {{-- Preview Panel (in search mode) --}}
         @if($fileContent !== null)
-            <div style="flex: 1; min-width: 0;">
+            <div style="flex: 1; min-width: 0; position: sticky; top: 80px; align-self: flex-start;">
                 <x-filament::section>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                         <span class="font-mono" style="font-size: 13px; color: rgba(255,255,255,0.8);">{{ basename($viewingFile) }}</span>
@@ -266,7 +266,7 @@
 
             {{-- File Viewer / Image Preview Panel --}}
             @if($fileContent !== null)
-                <div style="flex: 1; min-width: 0;">
+                <div style="flex: 1; min-width: 0; position: sticky; top: 80px; align-self: flex-start;">
                     <x-filament::section>
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                             <span class="font-mono" style="font-size: 13px; color: rgba(255,255,255,0.8);">{{ basename($viewingFile) }}</span>
