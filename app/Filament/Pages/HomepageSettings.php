@@ -132,16 +132,16 @@ class HomepageSettings extends Page implements HasForms {
 
                                 Forms\Components\Section::make('Hero Appearance')
                                     ->schema([
-                                        Forms\Components\Select::make('hero_height')
-                                            ->label('Hero Height')
-                                            ->options([
-                                                '100' => 'Full screen (100vh)',
-                                                '90'  => '90% screen',
-                                                '80'  => '80% screen',
-                                                '70'  => '70% screen',
-                                                '60'  => '60% screen',
-                                                '50'  => '50% screen',
-                                            ])
+                                        Forms\Components\TextInput::make('hero_height')
+                                            ->label('Hero Height (vh)')
+                                            ->numeric()
+                                            ->minValue(20)
+                                            ->maxValue(100)
+                                            ->suffix('vh')
+                                            ->default(100)
+                                            ->helperText('Percentage of screen height. 100 = full screen, 50 = half screen. Try 60-70 for a shorter hero.')
+                                            ->live()
+                                            ->afterStateUpdated(fn () => null),
                                             ->default('100'),
                                         Forms\Components\Select::make('hero_overlay_opacity')
                                             ->label('Dark Overlay Opacity')
