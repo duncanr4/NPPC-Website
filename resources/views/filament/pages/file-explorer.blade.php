@@ -162,23 +162,33 @@
                         <div style="text-align: center; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 8px;">
                             <img src="{{ $imageUrl }}" style="max-width: 100%; max-height: 500px; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
                         </div>
-                        @if($imageMeta)
-                            <div style="display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.5);">
-                                @if($imageMeta['width'] && $imageMeta['height'])
-                                    <span>{{ $imageMeta['width'] }} &times; {{ $imageMeta['height'] }} px</span>
-                                @endif
-                                <span>{{ $imageMeta['size'] }}</span>
-                                @if($imageMeta['type'])
-                                    <span>{{ $imageMeta['type'] }}</span>
-                                @endif
-                            </div>
-                        @endif
-                        <div style="margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; font-family: monospace;">{{ $viewingFile }}</div>
+                    @elseif($fileContent === '__PDF__' && $imageUrl)
+                        <div style="padding: 8px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                            <iframe src="{{ $imageUrl }}" style="width: 100%; height: 600px; border: none; border-radius: 4px;"></iframe>
+                        </div>
+                    @elseif($fileContent === '__VIDEO__' && $imageUrl)
+                        <div style="text-align: center; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                            <video controls style="max-width: 100%; max-height: 500px; border-radius: 4px;">
+                                <source src="{{ $imageUrl }}">
+                            </video>
+                        </div>
                     @else
                         <div style="max-height: 600px; overflow: auto;">
                             <pre class="whitespace-pre-wrap text-xs font-mono bg-gray-900 text-gray-100 p-4" style="margin: 0; border-radius: 6px;">{{ $fileContent }}</pre>
                         </div>
                     @endif
+                    @if($imageMeta)
+                        <div style="display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.5);">
+                            @if($imageMeta['width'] && $imageMeta['height'])
+                                <span>{{ $imageMeta['width'] }} &times; {{ $imageMeta['height'] }} px</span>
+                            @endif
+                            <span>{{ $imageMeta['size'] }}</span>
+                            @if($imageMeta['type'])
+                                <span>{{ $imageMeta['type'] }}</span>
+                            @endif
+                        </div>
+                    @endif
+                    <div style="margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; font-family: monospace;">{{ $viewingFile }}</div>
                 </x-filament::section>
             </div>
         @endif
@@ -277,28 +287,36 @@
                         </div>
 
                         @if($fileContent === '__IMAGE__' && $imageUrl)
-                            {{-- Image Preview --}}
                             <div style="text-align: center; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 8px;">
                                 <img src="{{ $imageUrl }}" style="max-width: 100%; max-height: 500px; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
                             </div>
-                            @if($imageMeta)
-                                <div style="display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.5);">
-                                    @if($imageMeta['width'] && $imageMeta['height'])
-                                        <span>{{ $imageMeta['width'] }} &times; {{ $imageMeta['height'] }} px</span>
-                                    @endif
-                                    <span>{{ $imageMeta['size'] }}</span>
-                                    @if($imageMeta['type'])
-                                        <span>{{ $imageMeta['type'] }}</span>
-                                    @endif
-                                </div>
-                            @endif
-                            <div style="margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; font-family: monospace;">{{ $viewingFile }}</div>
+                        @elseif($fileContent === '__PDF__' && $imageUrl)
+                            <div style="padding: 8px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <iframe src="{{ $imageUrl }}" style="width: 100%; height: 600px; border: none; border-radius: 4px;"></iframe>
+                            </div>
+                        @elseif($fileContent === '__VIDEO__' && $imageUrl)
+                            <div style="text-align: center; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <video controls style="max-width: 100%; max-height: 500px; border-radius: 4px;">
+                                    <source src="{{ $imageUrl }}">
+                                </video>
+                            </div>
                         @else
-                            {{-- Code / Text Preview --}}
                             <div style="max-height: 600px; overflow: auto;">
                                 <pre class="whitespace-pre-wrap text-xs font-mono bg-gray-900 text-gray-100 p-4" style="margin: 0; border-radius: 6px;">{{ $fileContent }}</pre>
                             </div>
                         @endif
+                        @if($imageMeta)
+                            <div style="display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.5);">
+                                @if($imageMeta['width'] && $imageMeta['height'])
+                                    <span>{{ $imageMeta['width'] }} &times; {{ $imageMeta['height'] }} px</span>
+                                @endif
+                                <span>{{ $imageMeta['size'] }}</span>
+                                @if($imageMeta['type'])
+                                    <span>{{ $imageMeta['type'] }}</span>
+                                @endif
+                            </div>
+                        @endif
+                        <div style="margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; font-family: monospace;">{{ $viewingFile }}</div>
                     </x-filament::section>
                 </div>
             @endif
