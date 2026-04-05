@@ -16,7 +16,7 @@ class RunClaudeCode implements ShouldQueue {
     use Queueable;
     use SerializesModels;
 
-    public int $timeout = 1800; // 30 minutes max
+    public int $timeout = 1800;
     public int $tries   = 1;
 
     public function __construct(
@@ -33,39 +33,78 @@ class RunClaudeCode implements ShouldQueue {
         $branchName = 'claude/session-'.substr($session->id, 0, 8).'-'.time();
         $worktreePath = $worktreeBase.'/'.$branchName;
 
+        // Log file for real-time output streaming
+        $logDir = storage_path('logs/claude-sessions');
+        if (! is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+        $logFile = $logDir.'/'.$session->id.'.log';
+
         $session->update([
             'status'        => 'running',
             'branch_name'   => $branchName,
             'worktree_path' => $worktreePath,
+            'output'        => '',
         ]);
 
         try {
-            // Ensure worktree base directory exists
             if (! is_dir($worktreeBase)) {
                 mkdir($worktreeBase, 0755, true);
             }
 
-            // Create a new branch from current HEAD
+            // Log progress
+            $this->log($logFile, $session, "Creating worktree: {$branchName}");
+
             $result = Process::path($repoPath)
                 ->timeout(30)
-                ->run("git worktree add -b {$branchName} {$worktreePath} HEAD");
+                ->run("git worktree add -b {$branchName} {$worktreePath} HEAD 2>&1");
 
             if (! $result->successful()) {
-                throw new \RuntimeException('Failed to create worktree: '.$result->errorOutput());
+                throw new \RuntimeException('Failed to create worktree: '.$result->output().$result->errorOutput());
             }
 
-            // Run Claude Code in the worktree
-            $escapedPrompt = str_replace("'", "'\\''", $session->prompt);
+            $this->log($logFile, $session, "Worktree created at: {$worktreePath}");
+            $this->log($logFile, $session, "Running Claude Code...");
+            $this->log($logFile, $session, "Prompt: {$session->prompt}");
+            $this->log($logFile, $session, str_repeat('─', 60));
 
-            $result = Process::path($worktreePath)
-                ->timeout(1500) // 25 minutes for Claude to work
+            // Run Claude Code — stream output to log file
+            $escapedPrompt = str_replace("'", "'\\''", $session->prompt);
+            $cmd = "{$claudeBinary} -p '{$escapedPrompt}' > ".escapeshellarg($logFile.'.claude')." 2>&1";
+
+            $process = Process::path($worktreePath)
+                ->timeout(1500)
                 ->env([
                     'HOME' => env('HOME', '/root'),
                     'PATH' => env('PATH', '/usr/local/bin:/usr/bin:/bin'),
                 ])
-                ->run("{$claudeBinary} -p '{$escapedPrompt}' 2>&1");
+                ->start($cmd);
 
-            $output = $result->output();
+            // Poll the log file and update the session while Claude runs
+            $lastSize = 0;
+            while ($process->running()) {
+                sleep(5);
+
+                // Read new output from Claude's log file
+                $claudeLog = $logFile.'.claude';
+                if (file_exists($claudeLog)) {
+                    $currentSize = filesize($claudeLog);
+                    if ($currentSize > $lastSize) {
+                        $newContent = file_get_contents($claudeLog);
+                        $session->update(['output' => $newContent]);
+                        $lastSize = $currentSize;
+                    }
+                }
+            }
+
+            $processResult = $process->wait();
+
+            // Read final output
+            $claudeLog = $logFile.'.claude';
+            $output = file_exists($claudeLog) ? file_get_contents($claudeLog) : $processResult->output();
+
+            $this->log($logFile, $session, str_repeat('─', 60));
+            $this->log($logFile, $session, "Claude Code finished. Capturing changes...");
 
             // Capture the diff
             $diffResult = Process::path($worktreePath)
@@ -74,14 +113,14 @@ class RunClaudeCode implements ShouldQueue {
 
             $diff = $diffResult->output();
 
-            // Get list of changed files
+            // Get changed files
             $statusResult = Process::path($worktreePath)
                 ->timeout(30)
                 ->run('git diff HEAD --name-only');
 
             $filesChanged = array_filter(explode("\n", trim($statusResult->output())));
 
-            // Also check for untracked files
+            // Check for untracked files
             $untrackedResult = Process::path($worktreePath)
                 ->timeout(30)
                 ->run('git ls-files --others --exclude-standard');
@@ -89,12 +128,10 @@ class RunClaudeCode implements ShouldQueue {
             $untrackedFiles = array_filter(explode("\n", trim($untrackedResult->output())));
 
             if (! empty($untrackedFiles)) {
-                // Stage untracked files so they show in diff
                 Process::path($worktreePath)
                     ->timeout(30)
                     ->run('git add '.implode(' ', array_map('escapeshellarg', $untrackedFiles)));
 
-                // Re-capture diff with staged changes
                 $diffResult = Process::path($worktreePath)
                     ->timeout(30)
                     ->run('git diff HEAD');
@@ -103,21 +140,39 @@ class RunClaudeCode implements ShouldQueue {
                 $filesChanged = array_merge($filesChanged, $untrackedFiles);
             }
 
+            $filesChanged = array_values(array_unique($filesChanged));
+            $this->log($logFile, $session, count($filesChanged).' file(s) changed.');
+
             $session->update([
                 'status'        => 'completed',
                 'output'        => $output,
                 'diff'          => $diff,
-                'files_changed' => array_values(array_unique($filesChanged)),
-            ]);
-        } catch (\Throwable $e) {
-            $session->update([
-                'status' => 'failed',
-                'output' => ($session->output ?? '')."\\n\\nERROR: ".$e->getMessage(),
+                'files_changed' => $filesChanged,
             ]);
 
-            // Clean up worktree on failure
+            // Clean up temp log
+            @unlink($claudeLog);
+        } catch (\Throwable $e) {
+            $this->log($logFile, $session, "ERROR: ".$e->getMessage());
+
+            // Read whatever output we captured
+            $claudeLog = $logFile.'.claude';
+            $partialOutput = file_exists($claudeLog) ? file_get_contents($claudeLog) : '';
+
+            $session->update([
+                'status' => 'failed',
+                'output' => $partialOutput."\n\nERROR: ".$e->getMessage(),
+            ]);
+
             $this->cleanupWorktree($repoPath, $worktreePath, $branchName);
+            @unlink($claudeLog);
         }
+    }
+
+    private function log(string $logFile, ClaudeSession $session, string $message): void {
+        $timestamp = now()->format('H:i:s');
+        $line = "[{$timestamp}] {$message}\n";
+        file_put_contents($logFile, $line, FILE_APPEND);
     }
 
     private function cleanupWorktree(string $repoPath, string $worktreePath, string $branchName): void {

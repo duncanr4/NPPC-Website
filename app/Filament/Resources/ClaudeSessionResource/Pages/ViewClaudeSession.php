@@ -26,6 +26,16 @@ class ViewClaudeSession extends Page {
         return 'Claude Session';
     }
 
+    public function getLiveLog(): string {
+        $logFile = storage_path('logs/claude-sessions/'.$this->record->id.'.log');
+
+        if (file_exists($logFile)) {
+            return file_get_contents($logFile);
+        }
+
+        return '';
+    }
+
     protected function getHeaderActions(): array {
         $actions = [];
 

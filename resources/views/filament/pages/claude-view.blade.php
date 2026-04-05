@@ -33,6 +33,38 @@
         </div>
     </div>
 
+    {{-- Live Log (while running) --}}
+    @if($record->isRunning() || $record->isPending())
+        <x-filament::section heading="Live Log">
+            @php $liveLog = $this->getLiveLog(); @endphp
+            @if($liveLog)
+                <pre class="whitespace-pre-wrap text-xs font-mono bg-gray-900 text-green-400 rounded-lg p-4 max-h-96 overflow-y-auto" id="live-log">{{ $liveLog }}</pre>
+                <script>
+                    // Auto-scroll to bottom
+                    setTimeout(() => {
+                        const el = document.getElementById('live-log');
+                        if (el) el.scrollTop = el.scrollHeight;
+                    }, 100);
+                </script>
+            @else
+                <div class="text-sm text-gray-500 italic">Waiting for output...</div>
+            @endif
+
+            @if($record->output)
+                <div class="mt-4">
+                    <div class="text-sm font-semibold mb-2">Claude Output (live):</div>
+                    <pre class="whitespace-pre-wrap text-xs font-mono bg-gray-900 text-gray-100 rounded-lg p-4 max-h-96 overflow-y-auto" id="claude-output">{{ $record->output }}</pre>
+                    <script>
+                        setTimeout(() => {
+                            const el = document.getElementById('claude-output');
+                            if (el) el.scrollTop = el.scrollHeight;
+                        }, 100);
+                    </script>
+                </div>
+            @endif
+        </x-filament::section>
+    @endif
+
     {{-- Prompt --}}
     <x-filament::section heading="Prompt" collapsed>
         <div class="whitespace-pre-wrap text-sm font-mono bg-gray-900 text-gray-100 rounded-lg p-4">{{ $record->prompt }}</div>
@@ -102,7 +134,7 @@
     @endif
 
     {{-- Claude Output --}}
-    @if($record->output)
+    @if($record->output && !$record->isRunning())
         <x-filament::section heading="Claude Output" collapsed>
             <pre class="whitespace-pre-wrap text-sm font-mono bg-gray-900 text-gray-100 rounded-lg p-4 max-h-[600px] overflow-y-auto">{{ $record->output }}</pre>
         </x-filament::section>
