@@ -30,10 +30,23 @@ class ArticleResource extends Resource {
                 Forms\Components\DatePicker::make('published_at'),
                 Forms\Components\Select::make('category_id')
                     ->relationship('category', 'title')
-                    ->nullable(),
+                    ->nullable()
+                    ->preload()
+                    ->searchable(),
                 Forms\Components\Select::make('author_id')
                     ->relationship('author', 'name')
-                    ->nullable(),
+                    ->nullable()
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Textarea::make('about'),
+                        Forms\Components\FileUpload::make('avatar')
+                            ->image()
+                            ->directory('authors'),
+                    ]),
                 Forms\Components\SpatieTagsInput::make('tags'),
                 Forms\Components\Repeater::make('citations_json')
                     ->label('Citations')
