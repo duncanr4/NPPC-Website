@@ -16,7 +16,7 @@ class RunClaudeCode implements ShouldQueue {
     use Queueable;
     use SerializesModels;
 
-    public int $timeout = 600; // 10 minutes max
+    public int $timeout = 1800; // 30 minutes max
     public int $tries   = 1;
 
     public function __construct(
@@ -58,12 +58,12 @@ class RunClaudeCode implements ShouldQueue {
             $escapedPrompt = str_replace("'", "'\\''", $session->prompt);
 
             $result = Process::path($worktreePath)
-                ->timeout($this->timeout - 60) // leave buffer
+                ->timeout(1500) // 25 minutes for Claude to work
                 ->env([
                     'HOME' => env('HOME', '/root'),
                     'PATH' => env('PATH', '/usr/local/bin:/usr/bin:/bin'),
                 ])
-                ->run("{$claudeBinary} -p '{$escapedPrompt}' --verbose 2>&1");
+                ->run("{$claudeBinary} -p '{$escapedPrompt}' 2>&1");
 
             $output = $result->output();
 
