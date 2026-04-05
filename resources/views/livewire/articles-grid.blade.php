@@ -22,16 +22,16 @@ EOB;
     <div class = "line mt-8" ></div >
 
     <div class = "py-12" >
-        <div class = "md:flex block justify-center mb-12" >
+        <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-bottom: 48px;">
             <button
                     wire:click = "selectCategory('Latest')"
-                    class = "uppercase text-lg md:text-lg md:inline block md:mb-0 mb-6  border-b-2 mx-2 md:mx-6 text-center {{ $selectedCategory === 'Latest' ? ' border-indigo-500' : 'border-transparent' }}" >
+                    style="text-transform: uppercase; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; padding-bottom: 8px; border-bottom: 2px solid {{ $selectedCategory === 'Latest' ? '#6366f1' : 'transparent' }}; background: none; color: #fff; cursor: pointer;">
                 Latest
             </button >
             @foreach ($categories as $category)
                 <button
                         wire:click="selectCategory('{{ $category->title }}')"
-                        class="uppercase text-lg md:text-lg md:inline block md:mb-0 mb-6  border-b-2 mx-2 md:mx-6 text-center {{ $selectedCategory === $category->title ? ' border-indigo-500' : 'border-transparent' }}">
+                        style="text-transform: uppercase; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; padding-bottom: 8px; border-bottom: 2px solid {{ $selectedCategory === $category->title ? '#6366f1' : 'transparent' }}; background: none; color: #fff; cursor: pointer;">
                     {{ $category->title }}
                 </button>
             @endforeach
