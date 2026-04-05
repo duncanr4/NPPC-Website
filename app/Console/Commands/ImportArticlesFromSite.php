@@ -60,6 +60,7 @@ class ImportArticlesFromSite extends Command {
         $imported = 0;
         $skipped = 0;
         $failed = 0;
+        $errors = [];
 
         foreach ($articleUrls as $url) {
             try {
@@ -75,6 +76,7 @@ class ImportArticlesFromSite extends Command {
                 $articleData = $this->scrapeArticle($url);
 
                 if (! $articleData) {
+                    $errors[] = "{$url} — Could not extract title from page";
                     $failed++;
                     $bar->advance();
                     continue;
@@ -118,8 +120,7 @@ class ImportArticlesFromSite extends Command {
 
                 $imported++;
             } catch (\Throwable $e) {
-                $this->newLine();
-                $this->warn("Failed: {$url} — {$e->getMessage()}");
+                $errors[] = "{$url} — {$e->getMessage()}";
                 $failed++;
             }
 
@@ -137,6 +138,14 @@ class ImportArticlesFromSite extends Command {
             ['Skipped (already exists)', $skipped],
             ['Failed', $failed],
         ]);
+
+        if (! empty($errors)) {
+            $this->newLine();
+            $this->error('Errors:');
+            foreach ($errors as $error) {
+                $this->line("  - {$error}");
+            }
+        }
 
         return self::SUCCESS;
     }
@@ -192,53 +201,74 @@ class ImportArticlesFromSite extends Command {
             'date'      => null,
         ];
 
-        // Extract title — look for h1
-        if (preg_match('#<h1[^>]*>(.*?)</h1>#si', $html, $m)) {
+        // Extract title — the article h1 has class "text-6xl"
+        if (preg_match('#<h1[^>]*class="[^"]*text-6xl[^"]*"[^>]*>(.*?)</h1>#si', $html, $m)) {
             $data['title'] = trim(strip_tags($m[1]));
         }
+        // Fallback: last h1 on the page (skip nav h1s)
+        if (! $data['title']) {
+            preg_match_all('#<h1[^>]*>(.*?)</h1>#si', $html, $matches);
+            if (! empty($matches[1])) {
+                foreach (array_reverse($matches[1]) as $h1) {
+                    $text = trim(strip_tags($h1));
+                    if (strlen($text) > 10) {
+                        $data['title'] = $text;
+                        break;
+                    }
+                }
+            }
+        }
 
-        // Extract article body — look for <article> tag content
+        // Extract article body — inside <article> tag
+        // Use greedy match up to </article> but stop before <script> tags
         if (preg_match('#<article[^>]*>(.*?)</article>#si', $html, $m)) {
-            $data['body'] = $this->htmlToMarkdown(trim($m[1]));
+            $body = $m[1];
+            // Remove any script tags injected by Cloudflare
+            $body = preg_replace('#<script[^>]*>.*?</script>#si', '', $body);
+            $data['body'] = $this->htmlToMarkdown(trim($body));
         }
 
-        // Fallback: look for markdom-rendered content
-        if (! $data['body'] && preg_match('#<div[^>]*class="[^"]*prose[^"]*"[^>]*>(.*?)</div>#si', $html, $m)) {
-            $data['body'] = $this->htmlToMarkdown(trim($m[1]));
-        }
-
-        // Extract hero image from background-image style
-        if (preg_match('#background-image:\s*url\([\'"]?(.*?)[\'"]?\)#', $html, $m)) {
+        // Extract hero image from background-image style on the article image div
+        // Look for the large hero div specifically (h-[420px] class)
+        if (preg_match('#<div[^>]*(?:h-\[420px\]|h-56)[^>]*style="[^"]*background-image:\s*url\([\'"]?(.*?)[\'"]?\)[^"]*"#si', $html, $m)) {
             $imgUrl = $m[1];
             if (str_starts_with($imgUrl, '/')) {
                 $imgUrl = $this->baseUrl.$imgUrl;
             }
             $data['image_url'] = $imgUrl;
         }
-
-        // Extract category — look for h5 before the title or category links
-        if (preg_match('#<h5[^>]*>(.*?)</h5>#si', $html, $m)) {
-            $cat = trim(strip_tags($m[1]));
-            if ($cat && strlen($cat) < 50) {
-                $data['category'] = $cat;
-            }
+        // Fallback: any background-image with /storage/ path
+        if (! $data['image_url'] && preg_match('#background-image:\s*url\([\'"]?(/storage/[^\'"\)]+)[\'"]?\)#', $html, $m)) {
+            $data['image_url'] = $this->baseUrl.$m[1];
         }
 
-        // Extract author
-        if (preg_match('#(?:by|author)[:\s]*([^<]{2,50})#i', $html, $m)) {
-            $author = trim(strip_tags($m[1]));
-            if ($author && strlen($author) < 100) {
-                $data['author'] = $author;
-            }
-        }
-
-        // Extract date
-        if (preg_match('#(\d{4}-\d{2}-\d{2})#', $html, $m)) {
-            $data['date'] = $m[1];
-        } elseif (preg_match('#((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{1,2},?\s+\d{4})#i', $html, $m)) {
+        // Extract date — "Published Feb 20, 2025" format
+        if (preg_match('#Published\s+((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{1,2},?\s+\d{4})#i', $html, $m)) {
             try {
                 $data['date'] = \Carbon\Carbon::parse($m[1])->format('Y-m-d');
             } catch (\Exception) {
+            }
+        }
+        // Fallback: any date format
+        if (! $data['date'] && preg_match('#((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{1,2},?\s+\d{4})#i', $html, $m)) {
+            try {
+                $data['date'] = \Carbon\Carbon::parse($m[1])->format('Y-m-d');
+            } catch (\Exception) {
+            }
+        }
+
+        // Extract author — look for "By AuthorName" or author section
+        if (preg_match('#<span[^>]*>\s*(?:By|Author:?)\s*</span>\s*<span[^>]*>(.*?)</span>#si', $html, $m)) {
+            $data['author'] = trim(strip_tags($m[1]));
+        } elseif (preg_match('#(?:By|Author:?)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})#', $html, $m)) {
+            $data['author'] = trim($m[1]);
+        }
+
+        // Extract category from h5 tag near the article
+        if (preg_match('#<h5[^>]*>\s*(.*?)\s*</h5>#si', $html, $m)) {
+            $cat = trim(strip_tags($m[1]));
+            if ($cat && strlen($cat) > 1 && strlen($cat) < 50 && ! str_contains(strtolower($cat), 'news')) {
+                $data['category'] = $cat;
             }
         }
 
