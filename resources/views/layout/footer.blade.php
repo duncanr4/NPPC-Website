@@ -1,3 +1,4 @@
+@php use App\Models\SiteSetting; @endphp
 <div id="app-footer">
     <footer class="site-footer -frameless">
         <div class="site-footer-inner">
@@ -8,26 +9,34 @@
                 </form>
                 <nav class="site-footer-social" aria-label="Social Media Links">
                     <ul>
+                        @if($twitterUrl = SiteSetting::get('twitter_url'))
                         <li>
-                            <a href="https://twitter.com/NAACP" class="icon-twitter" rel="noopener" target="_blank">
+                            <a href="{{ $twitterUrl }}" class="icon-twitter" rel="noopener" target="_blank">
                                 <span class="sr-text">Twitter</span>
                             </a>
                         </li>
+                        @endif
+                        @if($facebookUrl = SiteSetting::get('facebook_url'))
                         <li>
-                            <a href="https://www.facebook.com/naacp" class="icon-facebook" rel="noopener" target="_blank">
+                            <a href="{{ $facebookUrl }}" class="icon-facebook" rel="noopener" target="_blank">
                                 <span class="sr-text">Facebook</span>
                             </a>
                         </li>
+                        @endif
+                        @if($instagramUrl = SiteSetting::get('instagram_url'))
                         <li>
-                            <a href="https://www.instagram.com/naacp" class="icon-instagram" rel="noopener" target="_blank">
+                            <a href="{{ $instagramUrl }}" class="icon-instagram" rel="noopener" target="_blank">
                                 <span class="sr-text">Instagram</span>
                             </a>
                         </li>
+                        @endif
+                        @if($youtubeUrl = SiteSetting::get('youtube_url'))
                         <li>
-                            <a href="https://www.youtube.com/user/naacpvideos/videos" class="icon-youtube" rel="noopener" target="_blank">
+                            <a href="{{ $youtubeUrl }}" class="icon-youtube" rel="noopener" target="_blank">
                                 <span class="sr-text">YouTube</span>
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </nav>
             </div>
