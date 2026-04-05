@@ -17,7 +17,7 @@ abstract class Model extends \Illuminate\Database\Eloquent\Model {
         parent::booted();
 
         static::creating(function ($model) {
-            $model->id = Str::uuid();
+            $model->id = (string) Str::uuid();
         });
     }
 
