@@ -66,7 +66,9 @@ class ArticleResource extends Resource {
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->limit(60)
+                    ->tooltip(fn ($record) => $record->title),
                 Tables\Columns\TextColumn::make('category.title')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('author.name'),
