@@ -120,7 +120,7 @@
     .mega-nav-item.mega-active .mega-nav-indicator { transform: translateX(-50%) scaleX(1) !important; }
     .mega-dropdown-panel a:hover { background: rgba(0,0,0,0.05); }
     #main-nav { position: sticky; top: 0; }
-    #nav-spacing { height: 36px; }
+    #nav-spacing { height: 108px; }
 </style>
 
 <script>
