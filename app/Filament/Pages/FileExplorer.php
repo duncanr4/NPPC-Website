@@ -236,12 +236,14 @@ class FileExplorer extends Page {
             ? $basePath.DIRECTORY_SEPARATOR.$this->currentPath
             : $basePath;
 
+        if (! is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+
         foreach ($this->uploadedFiles as $file) {
-            $file->storeAs(
-                '',
-                $file->getClientOriginalName(),
-                ['disk' => 'local', 'root' => $targetDir]
-            );
+            $filename = $file->getClientOriginalName();
+            $destination = $targetDir.DIRECTORY_SEPARATOR.$filename;
+            file_put_contents($destination, file_get_contents($file->getRealPath()));
         }
 
         $this->uploadedFiles = [];
