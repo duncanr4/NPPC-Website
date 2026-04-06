@@ -18,8 +18,8 @@
 
     <div class=" h-[420px] rounded-lg mt-12 mb-6 overflow-hidden  justify-center items-center bg-center bg-cover" style="background-image: url('{{ $article->image_url }}')">
     </div>
-    <article class="mt-12">
-        @markdom($article->body)
+    <article class="mt-12 prose prose-invert max-w-none">
+        {!! $article->body !!}
 
 
    <div class="flex justify-between mt-12">
