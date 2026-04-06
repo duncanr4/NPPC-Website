@@ -11,39 +11,38 @@ final class FormSubmissionController extends Controller {
     public function submit(Request $request, string $form) {
         $data = [];
         foreach ($request->all() as $k => $v) {
-            if (in_array($k, ['/form/volunteer', '/form/contact', '_token', 'Token'])) {
+            if (in_array($k, ['/form/volunteer', '/form/contact', '_token', 'Token', 'g-recaptcha-response'])) {
                 continue;
             }
             $data[$k] = $v;
         }
 
-        $request->validate([
-            'g-recaptcha-response' => 'required',
-        ]);
-
-        $recaptchaResponse = $request->input('g-recaptcha-response');
-        $secretKey         = config('services.recaptcha.secret');
-
-        $client   = new Client();
-        $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [
-            'form_params' => ['secret' => $secretKey, 'response' => $recaptchaResponse, 'remoteip' => $request->ip()],
-        ]);
-
-        $body = json_decode((string) $response->getBody());
-
-        if (! $body->success) {
-            return redirect()->back()->withErrors(['captcha' => 'ReCAPTCHA validation failed.'])->withInput();
-        }
-
-        unset($data['g-recaptcha-response']);
-
-        // Save to database
+        // Save to database first (always capture the submission)
         FormSubmission::create([
             'form_type' => $form,
             'data'      => $data,
             'status'    => 'new',
         ]);
 
+        // reCAPTCHA validation (only if secret is configured)
+        $secretKey = config('services.recaptcha.secret');
+        if ($secretKey) {
+            $recaptchaResponse = $request->input('g-recaptcha-response');
+            if ($recaptchaResponse) {
+                $client   = new Client();
+                $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [
+                    'form_params' => ['secret' => $secretKey, 'response' => $recaptchaResponse, 'remoteip' => $request->ip()],
+                ]);
+
+                $body = json_decode((string) $response->getBody());
+
+                if (! $body->success) {
+                    return redirect()->back()->withErrors(['captcha' => 'ReCAPTCHA validation failed.'])->withInput();
+                }
+            }
+        }
+
+        // Send email notification
         $formattedData = collect($data)->map(function ($value, $key) {
             if (is_array($value)) {
                 $value = implode(', ', $value);
@@ -63,12 +62,14 @@ final class FormSubmissionController extends Controller {
             $subject = 'Volunteer form submission';
         }
 
-        $message = Mail::raw($formattedData, function ($message) use ($subject) {
-            $message->to('info@nationalpoliticalprisonercoalition.org')
-//            $message->to('test@katyusha.app')
-//                ->cc(config('app.mail_cc_address'))
-                ->subject($subject);
-        });
+        try {
+            Mail::raw($formattedData, function ($message) use ($subject) {
+                $message->to('info@nationalpoliticalprisonercoalition.org')
+                    ->subject($subject);
+            });
+        } catch (\Exception $e) {
+            // Email may fail if mail isn't configured — submission is already saved
+        }
 
         return redirect("/{$form}?form_submitted=true");
     }
