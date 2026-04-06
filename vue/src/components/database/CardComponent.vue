@@ -74,7 +74,7 @@ const mainCase = props.record.cases[0]
 
     <section class="flex justify-between mb-4">
       <section class="flex justify-start">
-        <template v-for="link in prisonerLinks" :key="link.key"><a v-if="record[link.key]" target="_blank" class="text-lg"><span class="link-img" v-html="link.image"></span></a></template>
+        <template v-for="link in prisonerLinks" :key="link.key"><a v-if="record[link.key]" :href="record[link.key]" target="_blank" rel="noopener" class="text-lg"><span class="link-img" v-html="link.image"></span></a></template>
       </section>
       <div>
         <span :class="heading5" v-if="mainCase && mainCase['Incarceration Date']">Incarcerated: {{mainCase["Incarceration Date"]}}</span>
