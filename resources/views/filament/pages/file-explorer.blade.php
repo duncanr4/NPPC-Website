@@ -444,8 +444,7 @@
                         case 'preview': wire.viewFile(path); break;
                         case 'open': wire.navigateTo(path); break;
                         case 'openfolder':
-                            wire.clearSearch();
-                            wire.navigateTo(folder === '/' ? '' : folder);
+                            wire.openFolderLocation(folder);
                             break;
                         case 'rename': wire.startRename(path); break;
                         case 'copy': wire.copyFile(path); break;

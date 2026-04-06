@@ -134,6 +134,15 @@ class FileExplorer extends Page {
         $this->isSearching = false;
     }
 
+    public function openFolderLocation(string $folder): void {
+        $this->searchQuery = '';
+        $this->searchResults = [];
+        $this->isSearching = false;
+        $this->fileContent = null;
+        $this->viewingFile = null;
+        $this->currentPath = ($folder === '/' || $folder === '.') ? '' : $folder;
+    }
+
     private function searchDirectory(string $basePath, string $relativePath, string $query, int $depth): void {
         if ($depth > 8 || count($this->searchResults) >= 100) {
             return;
