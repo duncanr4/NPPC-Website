@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 
 class AnnualReportResource extends Resource {
     protected static ?string $model = AnnualReport::class;
@@ -26,34 +27,10 @@ class AnnualReportResource extends Resource {
                     ->label('PDF File')
                     ->disk('public')
                     ->directory('annual-reports')
-                    ->acceptedFileTypes(['application/pdf'])
-                    ->maxSize(51200) // 50MB
-                    ->afterStateUpdated(function ($state, $set) {
-                        // Auto-generate cover image from first page of PDF
-                        if ($state && extension_loaded('imagick')) {
-                            try {
-                                $tempPath = is_string($state) ? storage_path('app/public/'.$state) : $state->getRealPath();
-                                $imagick = new \Imagick();
-                                $imagick->setResolution(200, 200);
-                                $imagick->readImage($tempPath.'[0]');
-                                $imagick->setImageFormat('jpg');
-                                $imagick->setImageCompressionQuality(85);
-
-                                $filename = 'annual-reports/images/'.pathinfo(is_string($state) ? $state : $state->getClientOriginalName(), PATHINFO_FILENAME).'.jpg';
-                                \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $imagick->getImageBlob());
-                                $imagick->clear();
-                                $imagick->destroy();
-
-                                $set('image', $filename);
-                            } catch (\Exception $e) {
-                                // Imagick failed — user can upload image manually
-                            }
-                        }
-                    })
-                    ->reactive(),
+                    ->maxSize(51200),
                 Forms\Components\FileUpload::make('image')
                     ->label('Cover Image')
-                    ->helperText('Auto-generated from PDF if Imagick is installed. Otherwise upload manually.')
+                    ->helperText('Upload a cover image, or leave blank and click "Generate from PDF" after saving.')
                     ->image()
                     ->disk('public')
                     ->directory('annual-reports/images'),
