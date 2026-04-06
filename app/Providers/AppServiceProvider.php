@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Disable Livewire's multiple root element detection
+        // Our File Explorer page uses style/script tags alongside content
+        \Livewire\Features\SupportMultipleRootElementDetection\SupportMultipleRootElementDetection::$disabled = true;
     }
 }
