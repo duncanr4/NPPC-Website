@@ -1,5 +1,4 @@
-<x-filament-panels::page>
-    <div>
+<div>
     <style>
         .fe-table { width: 100%; border-collapse: collapse; }
         .fe-table th { text-align: left; padding: 8px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -513,5 +512,4 @@
         });
     });
     </script>
-    </div>
-</x-filament-panels::page>
+</div>
