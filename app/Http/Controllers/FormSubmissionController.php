@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FormSubmission;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -35,6 +36,13 @@ final class FormSubmissionController extends Controller {
         }
 
         unset($data['g-recaptcha-response']);
+
+        // Save to database
+        FormSubmission::create([
+            'form_type' => $form,
+            'data'      => $data,
+            'status'    => 'new',
+        ]);
 
         $formattedData = collect($data)->map(function ($value, $key) {
             if (is_array($value)) {
