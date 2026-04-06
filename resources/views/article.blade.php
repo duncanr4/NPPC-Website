@@ -28,7 +28,9 @@
     </article>
 
     <style>
-        .page-content p { margin-bottom: 1.25em; line-height: 1.75; }
+        article.page-content p { margin: 0 0 1.25em 0 !important; line-height: 1.75 !important; min-height: 1.2em; }
+        article.page-content p:empty { min-height: 1.75em !important; }
+        article.page-content br { display: block; margin-bottom: 0.75em; }
         .page-content h1 { font-size: 2.5rem; font-weight: 800; margin: 1.5em 0 0.75em; }
         .page-content h2 { font-size: 2rem; font-weight: 700; margin: 1.5em 0 0.75em; }
         .page-content h3 { font-size: 1.5rem; font-weight: 700; margin: 1.25em 0 0.5em; }
