@@ -1,4 +1,4 @@
-@push('styles')
+<x-filament-panels::page>
 <style>
         .fe-table { width: 100%; border-collapse: collapse; }
         .fe-table th { text-align: left; padding: 8px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -45,9 +45,6 @@
         .fe-ctx-sep { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 8px; }
         .fe-drop-highlight { background: rgba(99,102,241,0.15) !important; }
     </style>
-@endpush
-
-<x-filament-panels::page>
     {{-- Top Bar: Breadcrumbs + Search + Actions --}}
     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
         {{-- Breadcrumbs --}}
@@ -350,14 +347,10 @@
         </div>
     @endif
 
-</x-filament-panels::page>
+    <div id="fe-context-menu" style="display:none; position:fixed; z-index:9999; background:#1e1e2e; border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:4px; min-width:180px; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
+    </div>
 
-{{-- Context Menu (outside Livewire root) --}}
-<div id="fe-context-menu" style="display:none; position:fixed; z-index:9999; background:#1e1e2e; border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:4px; min-width:180px; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
-</div>
-
-@push('scripts')
-<script>
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
         // === DRAG & DROP UPLOAD ===
         const page = document.querySelector('.fi-page');
@@ -519,4 +512,4 @@
         });
     });
     </script>
-@endpush
+</x-filament-panels::page>
