@@ -25,22 +25,8 @@ class ArticleResource extends Resource {
                 Forms\Components\FileUpload::make('image')
                     ->image()
                     ->directory('articles'),
-                Forms\Components\RichEditor::make('body')
-                    ->toolbarButtons([
-                        'bold',
-                        'italic',
-                        'underline',
-                        'strike',
-                        'h2',
-                        'h3',
-                        'bulletList',
-                        'orderedList',
-                        'link',
-                        'blockquote',
-                        'codeBlock',
-                        'redo',
-                        'undo',
-                    ])
+                \FilamentTiptapEditor\TiptapEditor::make('body')
+                    ->profile('default')
                     ->columnSpanFull(),
                 Forms\Components\DatePicker::make('published_at'),
                 Forms\Components\Select::make('category_id')
