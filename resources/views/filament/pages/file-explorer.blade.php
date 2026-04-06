@@ -38,6 +38,12 @@
         .fe-action-btn { background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.15s; display: inline-flex; }
         .fe-action-btn:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.1); }
         .fe-action-delete:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+        .fe-ctx-item { padding: 8px 14px; font-size: 13px; cursor: pointer; border-radius: 4px; color: rgba(255,255,255,0.8); }
+        .fe-ctx-item:hover { background: rgba(255,255,255,0.1); }
+        .fe-ctx-danger { color: #ef4444; }
+        .fe-ctx-danger:hover { background: rgba(239,68,68,0.1); }
+        .fe-ctx-sep { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 8px; }
+        .fe-drop-highlight { background: rgba(99,102,241,0.15) !important; }
     </style>
 
     {{-- Top Bar: Breadcrumbs + Search + Actions --}}
@@ -73,7 +79,6 @@
 
     {{-- Actions Bar: New Folder + Upload --}}
     <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;">
-        {{-- New Folder --}}
         <form wire:submit="createFolder" style="display: flex; gap: 6px; align-items: center;">
             <input type="text" wire:model="newFolderName" class="fe-small-input" placeholder="New folder name">
             <button type="submit" class="fe-btn">
@@ -82,18 +87,27 @@
             </button>
         </form>
 
-        {{-- Upload --}}
-        <form wire:submit="uploadFiles" style="display: flex; gap: 6px; align-items: center;">
-            <input type="file" wire:model="uploadedFiles" multiple style="font-size: 13px; color: rgba(255,255,255,0.7);">
-            @if($uploadedFiles)
-                <button type="submit" class="fe-btn fe-btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;display:inline;vertical-align:middle;margin-right:4px;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
-                    Upload ({{ count($uploadedFiles) }} file{{ count($uploadedFiles) > 1 ? 's' : '' }})
-                </button>
-            @endif
-        </form>
+        <label class="fe-btn" style="cursor: pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;display:inline;vertical-align:middle;margin-right:4px;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+            Choose Files
+            <input type="file" wire:model="uploadedFiles" multiple style="display: none;">
+        </label>
 
-        <span style="font-size: 12px; color: rgba(255,255,255,0.3);">Uploading to: /{{ $currentPath ?: 'project root' }}</span>
+        @if($uploadedFiles)
+            <button wire:click="uploadFiles" class="fe-btn fe-btn-primary">
+                Upload {{ count($uploadedFiles) }} file{{ count($uploadedFiles) > 1 ? 's' : '' }}
+            </button>
+        @endif
+
+        <span style="font-size: 12px; color: rgba(255,255,255,0.3);">Current: /{{ $currentPath ?: 'project root' }}</span>
+    </div>
+
+    {{-- Drag & Drop Zone --}}
+    <div id="fe-dropzone"
+         style="display: none; border: 2px dashed #6366f1; border-radius: 12px; padding: 40px; text-align: center; margin-bottom: 16px; background: rgba(99,102,241,0.05);">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;margin:0 auto 12px;color:#6366f1;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+        <div style="font-size: 18px; font-weight: 600; color: #6366f1;">Drop files here to upload</div>
+        <div style="font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px;">to /{{ $currentPath ?: 'project root' }}</div>
     </div>
 
     {{-- Search Results --}}
@@ -236,7 +250,13 @@
                         </thead>
                         <tbody>
                             @foreach($items as $item)
-                                <tr class="fe-row">
+                                <tr class="fe-row"
+                                    data-ctx-path="{{ $item['path'] }}"
+                                    data-ctx-name="{{ $item['name'] }}"
+                                    data-ctx-dir="{{ $item['is_dir'] ? '1' : '0' }}"
+                                    @if(!$item['is_dir']) draggable="true" data-drag-path="{{ $item['path'] }}" @endif
+                                    @if($item['is_dir']) data-drop-folder="{{ $item['path'] }}" @endif
+                                >
                                     <td @if($item['is_dir']) wire:click="navigateTo('{{ $item['path'] }}')" @else wire:click="viewFile('{{ $item['path'] }}')" @endif>
                                         @if($item['is_dir'])
                                             <svg xmlns="http://www.w3.org/2000/svg" class="fe-icon fe-folder" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>
@@ -322,4 +342,166 @@
             @endif
         </div>
     @endif
+
+    {{-- Context Menu --}}
+    <div id="fe-context-menu" style="display:none; position:fixed; z-index:9999; background:#1e1e2e; border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:4px; min-width:180px; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // === DRAG & DROP UPLOAD ===
+        const page = document.querySelector('.fi-page');
+        const dropzone = document.getElementById('fe-dropzone');
+        let dragCounter = 0;
+
+        if (page && dropzone) {
+            page.addEventListener('dragenter', function(e) {
+                e.preventDefault();
+                dragCounter++;
+                if (e.dataTransfer.types.includes('Files')) {
+                    dropzone.style.display = 'block';
+                }
+            });
+
+            page.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                dragCounter--;
+                if (dragCounter <= 0) {
+                    dropzone.style.display = 'none';
+                    dragCounter = 0;
+                }
+            });
+
+            page.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+
+            page.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dragCounter = 0;
+                dropzone.style.display = 'none';
+
+                if (e.dataTransfer.files.length > 0) {
+                    // Use Livewire's upload mechanism
+                    const fileInput = page.querySelector('input[type="file"]');
+                    if (fileInput) {
+                        const dt = new DataTransfer();
+                        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                            dt.items.add(e.dataTransfer.files[i]);
+                        }
+                        fileInput.files = dt.files;
+                        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+            });
+        }
+
+        // === CONTEXT MENU ===
+        const menu = document.getElementById('fe-context-menu');
+
+        function showContextMenu(e, path, name, isDir) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            let items = '';
+
+            const esc = (s) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            const wire = document.querySelector('[wire\\:id]').__livewire;
+
+            if (!isDir) {
+                items += '<div class="fe-ctx-item" data-action="preview">Preview</div>';
+            } else {
+                items += '<div class="fe-ctx-item" data-action="open">Open</div>';
+            }
+            items += '<div class="fe-ctx-sep"></div>';
+            items += '<div class="fe-ctx-item" data-action="rename">Rename</div>';
+            if (!isDir) {
+                items += '<div class="fe-ctx-item" data-action="copy">Duplicate</div>';
+            }
+            items += '<div class="fe-ctx-sep"></div>';
+            items += '<div class="fe-ctx-item fe-ctx-danger" data-action="delete">Delete</div>';
+
+            menu.innerHTML = items;
+
+            menu.querySelectorAll('[data-action]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    menu.style.display = 'none';
+                    switch(el.dataset.action) {
+                        case 'preview': wire.viewFile(path); break;
+                        case 'open': wire.navigateTo(path); break;
+                        case 'rename': wire.startRename(path); break;
+                        case 'copy': wire.copyFile(path); break;
+                        case 'delete':
+                            if (confirm('Delete ' + name + '?')) wire.deleteFile(path);
+                            break;
+                    }
+                });
+            });
+
+            menu.innerHTML = items;
+            menu.style.display = 'block';
+
+            // Position
+            const x = Math.min(e.clientX, window.innerWidth - 200);
+            const y = Math.min(e.clientY, window.innerHeight - 200);
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+        }
+
+        document.addEventListener('click', function() {
+            menu.style.display = 'none';
+        });
+
+        document.addEventListener('contextmenu', function(e) {
+            const row = e.target.closest('[data-ctx-path]');
+            if (row) {
+                showContextMenu(e, row.dataset.ctxPath, row.dataset.ctxName, row.dataset.ctxDir === '1');
+            } else {
+                menu.style.display = 'none';
+            }
+        });
+
+        // === DRAG TO MOVE FILES ===
+        document.addEventListener('dragstart', function(e) {
+            const row = e.target.closest('[data-drag-path]');
+            if (row) {
+                e.dataTransfer.setData('text/plain', row.dataset.dragPath);
+                e.dataTransfer.effectAllowed = 'move';
+                row.style.opacity = '0.4';
+            }
+        });
+
+        document.addEventListener('dragend', function(e) {
+            const row = e.target.closest('[data-drag-path]');
+            if (row) row.style.opacity = '1';
+        });
+
+        document.addEventListener('dragover', function(e) {
+            const row = e.target.closest('[data-drop-folder]');
+            if (row) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                row.style.background = 'rgba(99,102,241,0.15)';
+            }
+        });
+
+        document.addEventListener('dragleave', function(e) {
+            const row = e.target.closest('[data-drop-folder]');
+            if (row) row.style.background = '';
+        });
+
+        document.addEventListener('drop', function(e) {
+            const row = e.target.closest('[data-drop-folder]');
+            if (row) {
+                e.preventDefault();
+                const sourcePath = e.dataTransfer.getData('text/plain');
+                const targetFolder = row.dataset.dropFolder;
+                row.style.background = '';
+                if (sourcePath && targetFolder && sourcePath !== targetFolder) {
+                    @this.moveFile(sourcePath, targetFolder);
+                }
+            }
+        });
+    });
+    </script>
 </x-filament-panels::page>

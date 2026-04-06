@@ -282,6 +282,48 @@ class FileExplorer extends Page {
         $this->newFileName = '';
     }
 
+    // --- Move File ---
+
+    public function moveFile(string $sourcePath, string $targetFolder): void {
+        $basePath = config('claude.repo_path', base_path());
+        $sourceFullPath = $basePath.DIRECTORY_SEPARATOR.$sourcePath;
+        $targetDir = $basePath.DIRECTORY_SEPARATOR.$targetFolder;
+        $filename = basename($sourcePath);
+        $targetFullPath = $targetDir.DIRECTORY_SEPARATOR.$filename;
+
+        if (! file_exists($sourceFullPath) || ! is_dir($targetDir) || file_exists($targetFullPath)) {
+            return;
+        }
+
+        rename($sourceFullPath, $targetFullPath);
+    }
+
+    // --- Copy File ---
+
+    public function copyFile(string $path): void {
+        $basePath = config('claude.repo_path', base_path());
+        $fullPath = $basePath.DIRECTORY_SEPARATOR.$path;
+
+        if (! is_file($fullPath)) {
+            return;
+        }
+
+        $dir = dirname($fullPath);
+        $ext = pathinfo($path, PATHINFO_EXTENSION);
+        $name = pathinfo($path, PATHINFO_FILENAME);
+        $newName = $name.' - Copy'.($ext ? '.'.$ext : '');
+        $newPath = $dir.DIRECTORY_SEPARATOR.$newName;
+
+        $i = 2;
+        while (file_exists($newPath)) {
+            $newName = $name." - Copy ({$i})".($ext ? '.'.$ext : '');
+            $newPath = $dir.DIRECTORY_SEPARATOR.$newName;
+            $i++;
+        }
+
+        copy($fullPath, $newPath);
+    }
+
     // --- Delete ---
 
     public function deleteFile(string $path): void {
