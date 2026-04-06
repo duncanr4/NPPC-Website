@@ -75,14 +75,17 @@
                             <div class="mega-nav-underline" style="position:absolute; bottom:0; left:20px; right:20px; height:3px; background:#5660fe; transform:scaleX(0); transition:transform 0.2s;"></div>
                         @else
                             {{-- Active indicator for items WITH children --}}
-                            <div class="mega-nav-indicator" style="position:absolute; bottom:0; left:50%; transform:translateX(-50%) scaleX(0); width:40px; height:3px; background:#f5a623; transition:transform 0.2s;"></div>
+                            <div class="mega-nav-indicator" style="position:absolute; bottom:0; left:50%; transform:translateX(-50%) scaleX(0); width:40px; height:3px; background:#5660fe; transition:transform 0.2s;"></div>
                         @endif
                     </div>
                 @endforeach
             </nav>
 
-            {{-- Search + Hamburger icons --}}
+            {{-- Donate + Search + Hamburger --}}
             <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
+                <a href="/donate" style="background:#5660fe; color:#fff; text-decoration:none; font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; padding:12px 28px; border-radius:4px; display:flex; align-items:center; gap:8px; transition:background 0.2s;" onmouseenter="this.style.background='#4850e6'" onmouseleave="this.style.background='#5660fe'">
+                    DONATE <span style="font-size:18px;">&rarr;</span>
+                </a>
                 <button onclick="document.getElementById('search-overlay').style.display='block'; document.getElementById('search-overlay').querySelector('input').focus();" style="background:#222; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#fff" viewBox="0 0 24 24"><path d="M21.71 20.29l-5.4-5.4A8 8 0 1 0 15 16.31l5.4 5.4a1 1 0 0 0 1.42-1.42zM5 11a6 6 0 1 1 12 0 6 6 0 0 1-12 0z"/></svg>
                 </button>
@@ -95,12 +98,11 @@
         {{-- Mega dropdown panels --}}
         @foreach($menuItems as $item)
             @if($item->children)
-                <div class="mega-dropdown-panel" data-mega-panel="{{$item->slug}}" style="display:none; position:absolute; left:0; right:0; top:100%; background:rgba(245,245,245,0.97); backdrop-filter:blur(10px); z-index:9999; border-top:3px solid #f5a623;">
-                    <div style="max-width:1280px; margin:0 auto; padding:40px 24px; display:flex; gap:40px;">
-                        {{-- Links grid --}}
-                        <div style="flex:1; display:grid; grid-template-columns:repeat(2,1fr); gap:0;">
+                <div class="mega-dropdown-panel" data-mega-panel="{{$item->slug}}" style="display:none; position:absolute; left:50%; transform:translateX(-50%); top:100%; z-index:9999; width:600px; max-width:90vw;">
+                    <div style="background:#fff; border-top:3px solid #5660fe; box-shadow:0 8px 30px rgba(0,0,0,0.15); border-radius:0 0 8px 8px;">
+                        <div style="padding:24px 32px; display:grid; grid-template-columns:repeat(2,1fr); gap:0;">
                             @foreach($item->children as $child)
-                                <a href="{{$child->href}}" style="display:block; padding:16px 20px; color:#222; text-decoration:none; font-size:17px; font-weight:700; border-bottom:1px solid #ddd; transition:background 0.15s;">
+                                <a href="{{$child->href}}" style="display:block; padding:14px 16px; color:#222; text-decoration:none; font-size:16px; font-weight:600; border-bottom:1px solid #eee; transition:background 0.15s;">
                                     {{$child->title}}
                                 </a>
                             @endforeach
