@@ -1,12 +1,14 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { DoughnutChart } from 'vue-chart-3';
-import useAirtable from "@/composables/useAirtable";
+import {PrisonerRecord} from "@/@types/types";
 
-const { records, fetchRecords, aggregateCounts, sumCounts } = useAirtable();
-const chartDataEra = ref({})
-const chartDataGender = ref({})
-const chartDataRace = ref({})
+interface Props {
+  records: PrisonerRecord[]
+}
+
+const props = defineProps<Props>()
+
 const dataColors = [
   '#825af9',
   '#35d9c3',
@@ -33,45 +35,102 @@ const chartOptions = ref({
   },
 });
 
-const prepareChartData = (key: any) => {
+// Reactive computed stats based on filtered records
+const sumCounts = computed(() => {
+  const counts: Record<string, number> = {
+    individualsNotReleased: 0,
+    individualsInExile: 0,
+    individualsImprisonedOrExiled: 0,
+    individualsImprisoned: 0,
+    accumulatedDaysImprisoned: 0,
+    accumulatedDaysInExile: 0,
+  }
+
+  props.records.forEach((prisoner) => {
+    if (prisoner['In Exile']) counts.individualsInExile++
+    if (prisoner['In Custody']) counts.individualsImprisoned++
+    if (prisoner['Imprisoned or Exiled'] === 'T') counts.individualsImprisonedOrExiled++
+    if (prisoner.imprisonedFor) counts.accumulatedDaysImprisoned += prisoner.imprisonedFor
+    if (prisoner.inExileFor) counts.accumulatedDaysInExile += prisoner.inExileFor
+    if (!prisoner.Released) counts.individualsNotReleased++
+  })
+
+  return counts
+})
+
+const aggregateCounts = computed(() => {
+  const agg: Record<string, Record<string, number>> = {
+    Race: {},
+    Gender: {},
+    Era: {},
+  }
+
+  props.records.forEach((prisoner) => {
+    const processKey = (key: string, value: any) => {
+      if (!value) return
+      if (Array.isArray(value)) {
+        value.forEach((val: string) => {
+          if (!agg[key][val]) agg[key][val] = 0
+          agg[key][val]++
+        })
+      } else {
+        if (!agg[key][value]) agg[key][value] = 0
+        agg[key][value]++
+      }
+    }
+    processKey('Race', prisoner.Race)
+    processKey('Gender', prisoner.Gender)
+    processKey('Era', prisoner.Era)
+  })
+
+  // Sort each by count descending
+  Object.keys(agg).forEach(key => {
+    agg[key] = Object.entries(agg[key])
+      .sort((a, b) => b[1] - a[1])
+      .reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {})
+  })
+
+  return agg
+})
+
+const prepareChartData = (key: string) => {
+  const data = aggregateCounts.value[key] || {}
   return {
-    labels: Object.keys(aggregateCounts[key]),
+    labels: Object.keys(data),
     datasets: [{
-      data: Object.values(aggregateCounts[key]),
+      data: Object.values(data),
       backgroundColor: dataColors
     }]
-  };
-};
-
-const renderAggregateCounts = (key: string): string => {
-  const entries = Object.entries(aggregateCounts[key]);
-  return entries.map(([label, count], index) => {
-    const color = dataColors[index % dataColors.length];
-    return `<span class="font-bold" style="color: ${color};">${count} ${label}s</span>`;
-  }).join(', ');
+  }
 }
 
-// This will return a string with each count and label wrapped in a span with the corresponding color.
-await fetchRecords()
-chartDataEra.value = prepareChartData('Era')
-chartDataGender.value = prepareChartData('Gender')
-chartDataRace.value = prepareChartData('Race')
+const chartDataGender = computed(() => prepareChartData('Gender'))
+const chartDataRace = computed(() => prepareChartData('Race'))
 
+const renderAggregateCounts = (key: string): string => {
+  const data = aggregateCounts.value[key] || {}
+  const entries = Object.entries(data)
+  return entries.map(([label, count], index) => {
+    const color = dataColors[index % dataColors.length]
+    return `<span class="font-bold" style="color: ${color};">${count} ${label}s</span>`
+  }).join(', ')
+}
+
+const raceInfo = computed(() => {
+  return `The racial composition of political prisoners - ${renderAggregateCounts('Race')} - speaks volumes about the intersection of race and political dissent in the United States.<br/><br/>
+  These statistics compel us to question how race influences both the likelihood of becoming a political prisoner and the experiences of these individuals within the justice system.`
+})
+
+const genderInfo = computed(() => {
+  return `In examining the stark disparity between genders - ${renderAggregateCounts('Gender')} - the data reflects a broader societal narrative.<br/><br/>
+  It's essential to delve deeper into these numbers to understand the underlying causes of such a vast gender gap in political imprisonment, considering factors like historical marginalization, societal expectations, and the different risks and challenges faced by each gender in their pursuit of justice and equality.`
+})
 
 interface IDisplayElement {
   key: string
   label: string
   info: string
 }
-
-
-const chartElements: Array<IDisplayElement> = [
-  {key: 'race', label: 'Racial Composition', info: `The racial composition of political prisoners - ${renderAggregateCounts('Race')} - speaks volumes about the intersection of race and political dissent in the United States.<br/><br/>
-  These statistics compel us to question how race influences both the likelihood of becoming a political prisoner and the experiences of these individuals within the justice system.`},
-
-  {key: 'gender', label: 'Gender Disparity', info: `In examining the stark disparity between genders - ${renderAggregateCounts('Gender')} - the data reflects a broader societal narrative.<br/><br/>
-  It's essential to delve deeper into these numbers to understand the underlying causes of such a vast gender gap in political imprisonment, considering factors like historical marginalization, societal expectations, and the different risks and challenges faced by each gender in their pursuit of justice and equality.`}
-]
 
 const sumElementsSmallNumbers: Array<IDisplayElement> = [
   {
@@ -84,7 +143,7 @@ const sumElementsSmallNumbers: Array<IDisplayElement> = [
     label: 'Individuals Imprisoned',
     info: 'This figure represents a broader narrative of political resistance, encompassing those who face incarceration and exile. Their stories are emblematic of a larger struggle for justice and the ongoing fight against systemic oppression.'
   }
-    ]
+]
 
 const sumElements: Array<IDisplayElement> = [
   {
@@ -98,44 +157,48 @@ const sumElements: Array<IDisplayElement> = [
     info: 'Exile, a forced separation from one\'s homeland, often results from standing against oppressive regimes. This figure represents not just days lost, but lives uprooted and voices silenced in the fight for justice and human rights.'
   }
 ]
-
 </script>
 
 <template>
   <section id="stats-component">
     <div class="" id="counters">
-      <div class="counter flex-col-reverse md:flex-row flex md:justify-between mb-24 md:mb-32" v-for="element in sumElements">
+      <div class="counter flex-col-reverse md:flex-row flex md:justify-between mb-24 md:mb-32" v-for="element in sumElements" :key="element.key">
         <div class="w-full md:w-1/2 text-left">
           <div class="counter-label title-label"><sub>collective</sub>{{element.label}}</div>
           <div class="counter-info pr-16"><p>{{element.info}}</p></div>
         </div>
         <div class="w-full md:w-1/2 text-right counter-value pt-12">
-          <vue3-autocounter ref='counter' :startAmount='0' :endAmount='sumCounts[element.key]' :duration='5' separator=',' :decimals='0' :autoinit='true'/>
+          {{ sumCounts[element.key]?.toLocaleString() || '0' }}
         </div>
       </div>
     </div>
 
     <div id="charts">
-      <div v-for="(element, index) in chartElements" :key="index" class="chart mb-24 md:mb-32 flex-col-reverse md:flex-row flex md:justify-between">
-        <div v-if="index % 2 === 0" class="w-full md:w-1/2 text-left">
-          <div class="chart-label title-label">{{ element.label }}</div>
-          <div><p v-html="element.info"></p></div>
+      <div class="chart mb-24 md:mb-32 flex-col-reverse md:flex-row flex md:justify-between">
+        <div class="w-full md:w-1/2 text-left">
+          <div class="chart-label title-label">Racial Composition</div>
+          <div><p v-html="raceInfo"></p></div>
         </div>
         <div class="w-full md:w-1/2 chart-value mb-12">
-          <DoughnutChart :options="chartOptions" :chartData="element.key === 'gender' ? chartDataGender : chartDataRace" />
+          <DoughnutChart :options="chartOptions" :chartData="chartDataRace" />
         </div>
-        <div v-if="index % 2 !== 0" class="w-full md:w-1/2 text-left">
-          <div class="chart-label title-label">{{ element.label }}</div>
-          <div><p v-html="element.info"></p></div>
+      </div>
+
+      <div class="chart mb-24 md:mb-32 flex-col-reverse md:flex-row flex md:justify-between">
+        <div class="w-full md:w-1/2 chart-value mb-12">
+          <DoughnutChart :options="chartOptions" :chartData="chartDataGender" />
+        </div>
+        <div class="w-full md:w-1/2 text-left">
+          <div class="chart-label title-label">Gender Disparity</div>
+          <div><p v-html="genderInfo"></p></div>
         </div>
       </div>
     </div>
 
-
     <div class="" id="counters-small">
-      <div class="counter block md:flex md:justify-between mb-24 md:mb-32" v-for="element in sumElementsSmallNumbers">
+      <div class="counter block md:flex md:justify-between mb-24 md:mb-32" v-for="element in sumElementsSmallNumbers" :key="element.key">
         <div class="w-full md:w-2/5  counter-value">
-          <vue3-autocounter ref='counter' :startAmount='0' :endAmount='sumCounts[element.key]' :duration='5' separator='' :decimals='0' :autoinit='true'/>
+          {{ sumCounts[element.key]?.toLocaleString() || '0' }}
         </div>
        <div class="w-full md:w-3/5 text-left">
          <div class="counter-label title-label">{{element.label}}</div>
@@ -143,8 +206,6 @@ const sumElements: Array<IDisplayElement> = [
        </div>
       </div>
     </div>
-
-
   </section>
 </template>
 
