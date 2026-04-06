@@ -129,7 +129,12 @@
                     </thead>
                     <tbody>
                         @foreach($searchResults as $result)
-                            <tr class="fe-row">
+                            <tr class="fe-row"
+                                data-ctx-path="{{ $result['path'] }}"
+                                data-ctx-name="{{ $result['name'] }}"
+                                data-ctx-dir="{{ $result['is_dir'] ? '1' : '0' }}"
+                                data-ctx-folder="{{ $result['dir'] }}"
+                            >
                                 <td @if($result['is_dir']) wire:click="navigateTo('{{ $result['path'] }}')" @else wire:click="viewFile('{{ $result['path'] }}')" @endif>
                                     @if($result['is_dir'])
                                         <svg xmlns="http://www.w3.org/2000/svg" class="fe-icon fe-folder" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>
@@ -399,13 +404,11 @@
         // === CONTEXT MENU ===
         const menu = document.getElementById('fe-context-menu');
 
-        function showContextMenu(e, path, name, isDir) {
+        function showContextMenu(e, path, name, isDir, folder) {
             e.preventDefault();
             e.stopPropagation();
 
             let items = '';
-
-            const esc = (s) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
             const wire = document.querySelector('[wire\\:id]').__livewire;
 
             if (!isDir) {
@@ -413,6 +416,11 @@
             } else {
                 items += '<div class="fe-ctx-item" data-action="open">Open</div>';
             }
+
+            if (folder) {
+                items += '<div class="fe-ctx-item" data-action="openfolder">Open folder location</div>';
+            }
+
             items += '<div class="fe-ctx-sep"></div>';
             items += '<div class="fe-ctx-item" data-action="rename">Rename</div>';
             if (!isDir) {
@@ -422,6 +430,12 @@
             items += '<div class="fe-ctx-item fe-ctx-danger" data-action="delete">Delete</div>';
 
             menu.innerHTML = items;
+            menu.style.display = 'block';
+
+            const x = Math.min(e.clientX, window.innerWidth - 200);
+            const y = Math.min(e.clientY, window.innerHeight - 250);
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
 
             menu.querySelectorAll('[data-action]').forEach(function(el) {
                 el.addEventListener('click', function() {
@@ -429,6 +443,10 @@
                     switch(el.dataset.action) {
                         case 'preview': wire.viewFile(path); break;
                         case 'open': wire.navigateTo(path); break;
+                        case 'openfolder':
+                            wire.clearSearch();
+                            wire.navigateTo(folder === '/' ? '' : folder);
+                            break;
                         case 'rename': wire.startRename(path); break;
                         case 'copy': wire.copyFile(path); break;
                         case 'delete':
@@ -437,15 +455,6 @@
                     }
                 });
             });
-
-            menu.innerHTML = items;
-            menu.style.display = 'block';
-
-            // Position
-            const x = Math.min(e.clientX, window.innerWidth - 200);
-            const y = Math.min(e.clientY, window.innerHeight - 200);
-            menu.style.left = x + 'px';
-            menu.style.top = y + 'px';
         }
 
         document.addEventListener('click', function() {
@@ -455,7 +464,7 @@
         document.addEventListener('contextmenu', function(e) {
             const row = e.target.closest('[data-ctx-path]');
             if (row) {
-                showContextMenu(e, row.dataset.ctxPath, row.dataset.ctxName, row.dataset.ctxDir === '1');
+                showContextMenu(e, row.dataset.ctxPath, row.dataset.ctxName, row.dataset.ctxDir === '1', row.dataset.ctxFolder || null);
             } else {
                 menu.style.display = 'none';
             }
