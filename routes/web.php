@@ -35,3 +35,10 @@ Route::controller(FormSubmissionController::class)
     ->group(function () {
         Route::post('/form/{form}', 'submit');
     });
+
+Route::post('/sign-up', function (\Illuminate\Http\Request $request) {
+    $request->validate(['email' => 'required|email']);
+    \App\Models\EmailSubscriber::firstOrCreate(['email' => $request->input('email')]);
+
+    return redirect()->back()->with('subscribed', true);
+});
