@@ -18,16 +18,31 @@
 
     <div class=" h-[420px] rounded-lg mt-12 mb-6 overflow-hidden  justify-center items-center bg-center bg-cover" style="background-image: url('{{ $article->image_url }}')">
     </div>
-    <article class="mt-12 prose prose-invert max-w-none">
+    <article class="mt-12 page-content">
         {!! $article->body !!}
 
-
-   <div class="flex justify-between mt-12">
-       @include('partials.articles.tags', ['size'=>'normal'])
-
-       @include('partials.articles.citations')
-   </div>
-
-
+        <div class="flex justify-between mt-12">
+            @include('partials.articles.tags', ['size'=>'normal'])
+            @include('partials.articles.citations')
+        </div>
     </article>
+
+    <style>
+        .page-content p { margin-bottom: 1.25em; line-height: 1.75; }
+        .page-content h1 { font-size: 2.5rem; font-weight: 800; margin: 1.5em 0 0.75em; }
+        .page-content h2 { font-size: 2rem; font-weight: 700; margin: 1.5em 0 0.75em; }
+        .page-content h3 { font-size: 1.5rem; font-weight: 700; margin: 1.25em 0 0.5em; }
+        .page-content h4 { font-size: 1.25rem; font-weight: 600; margin: 1em 0 0.5em; }
+        .page-content ul, .page-content ol { margin: 1em 0; padding-left: 1.5em; }
+        .page-content li { margin-bottom: 0.5em; line-height: 1.75; }
+        .page-content blockquote { border-left: 3px solid rgba(255,255,255,0.3); padding-left: 1em; margin: 1.5em 0; color: rgba(255,255,255,0.7); }
+        .page-content a { color: #6366f1; text-decoration: underline; }
+        .page-content strong { font-weight: 700; }
+        .page-content em { font-style: italic; }
+        .page-content .lead { font-size: 1.25em; }
+        .page-content small, .page-content .small { font-size: 0.875em; }
+        .page-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5em 0; }
+        .page-content table { width: 100%; border-collapse: collapse; margin: 1.5em 0; }
+        .page-content th, .page-content td { border: 1px solid rgba(255,255,255,0.15); padding: 8px 12px; text-align: left; }
+    </style>
 @endsection
