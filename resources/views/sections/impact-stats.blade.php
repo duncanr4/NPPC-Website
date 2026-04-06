@@ -21,9 +21,6 @@
             <h2 class="text-white uppercase" style="font-size: 52px; font-weight: 900; line-height: 1.05; letter-spacing: 0.02em;">
                 {!! nl2br(e($heading)) !!}
             </h2>
-            <a href="/donate" class="inline-block uppercase text-white font-bold no-underline transition-colors" style="background-color: #d42b2b; font-size: 14px; padding: 14px 32px; letter-spacing: 0.08em;" onmouseenter="this.style.backgroundColor='#b82424'" onmouseleave="this.style.backgroundColor='#d42b2b'">
-                {{ $donateLabel }}
-            </a>
         </div>
 
         <div>
