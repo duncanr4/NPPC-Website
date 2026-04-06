@@ -3,9 +3,9 @@
     <footer class="site-footer -frameless">
         <div class="site-footer-inner">
             <div class="site-footer-top">
-                <form class="site-footer-signup" action="/sign-up" data-protonpass-form=""><label for="site-footer-signup-input">Stay
+                <form class="site-footer-signup" action="/sign-up" method="POST">@csrf<label for="site-footer-signup-input">Stay
                         informed</label>
-                    <div class="site-footer-signup-inputs"><protonpass-control style=""></protonpass-control><input type="email" id="site-footer-signup-input" class="site-footer-signup-input" name="em" value="" placeholder="Enter your email" data-protonpass-field-type="email" style="padding-right: 86.2px !important;" data-protonpass-field="" data-protonpass-base-css="{&quot;padding-right&quot;:&quot;&quot;}"><button type="submit" class="site-footer-signup-submit btn -go"><span class="sr-text">Submit</span></button></div>
+                    <div class="site-footer-signup-inputs"><input type="email" id="site-footer-signup-input" class="site-footer-signup-input" name="email" value="" placeholder="Enter your email" required><button type="submit" class="site-footer-signup-submit btn -go"><span class="sr-text">Submit</span></button></div>
                 </form>
                 <nav class="site-footer-social" aria-label="Social Media Links">
                     <ul>
