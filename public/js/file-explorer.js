@@ -96,7 +96,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 switch(el.dataset.action) {
                     case 'preview': wire.call('viewFile', path); break;
                     case 'open': wire.call('navigateTo', path); break;
-                    case 'openfolder': wire.call('openFolderLocation', folder); break;
+                    case 'openfolder':
+                        wire.call('clearSearch').then(function() {
+                            wire.call('navigateTo', folder === '/' ? '' : folder);
+                        });
+                        break;
                     case 'rename': wire.call('startRename', path); break;
                     case 'copy': wire.call('copyFile', path); break;
                     case 'delete':
