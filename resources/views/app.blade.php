@@ -43,6 +43,9 @@ $isHome = request()->segment(1) == ''
 
 <body class="page-{{request()->segment(1)}} @if ($isHome) home-page @endif">
 
+{{-- Page transition overlay --}}
+<div id="page-transition" style="position:fixed; inset:0; background:#000; z-index:999999; opacity:1; pointer-events:none; transition:opacity 0.4s ease;"></div>
+
 @include('layout.nav_desktop')
 @include('layout.nav_mobile')
 
@@ -67,6 +70,33 @@ $isHome = request()->segment(1) == ''
     Livewire.on('open-payment-tab', url => {
         window.open(url, '_blank');
     });
+
+    // Page transition: fade in on load, fade out on navigate
+    (function() {
+        var overlay = document.getElementById('page-transition');
+        if (!overlay) return;
+
+        // Fade in: remove black overlay after page loads
+        window.addEventListener('load', function() {
+            setTimeout(function() { overlay.style.opacity = '0'; }, 50);
+        });
+
+        // Fade out: show black overlay before navigating
+        document.addEventListener('click', function(e) {
+            var link = e.target.closest('a[href]');
+            if (!link) return;
+
+            var href = link.getAttribute('href');
+            // Skip external links, anchors, javascript, new tabs, and admin links
+            if (!href || href.startsWith('#') || href.startsWith('javascript') ||
+                href.startsWith('http') || href.startsWith('/admin') ||
+                link.target === '_blank' || e.ctrlKey || e.metaKey) return;
+
+            e.preventDefault();
+            overlay.style.opacity = '1';
+            setTimeout(function() { window.location.href = href; }, 400);
+        });
+    })();
 </script>
 </body>
 
