@@ -409,7 +409,10 @@
             e.stopPropagation();
 
             let items = '';
-            const wire = document.querySelector('[wire\\:id]').__livewire;
+            const wireEl = document.querySelector('[wire\\:id]');
+            const wireId = wireEl ? wireEl.getAttribute('wire:id') : null;
+            const wire = wireId ? Livewire.find(wireId) : null;
+            if (!wire) return;
 
             if (!isDir) {
                 items += '<div class="fe-ctx-item" data-action="preview">Preview</div>';
@@ -441,15 +444,13 @@
                 el.addEventListener('click', function() {
                     menu.style.display = 'none';
                     switch(el.dataset.action) {
-                        case 'preview': wire.viewFile(path); break;
-                        case 'open': wire.navigateTo(path); break;
-                        case 'openfolder':
-                            wire.openFolderLocation(folder);
-                            break;
-                        case 'rename': wire.startRename(path); break;
-                        case 'copy': wire.copyFile(path); break;
+                        case 'preview': wire.call('viewFile', path); break;
+                        case 'open': wire.call('navigateTo', path); break;
+                        case 'openfolder': wire.call('openFolderLocation', folder); break;
+                        case 'rename': wire.call('startRename', path); break;
+                        case 'copy': wire.call('copyFile', path); break;
                         case 'delete':
-                            if (confirm('Delete ' + name + '?')) wire.deleteFile(path);
+                            if (confirm('Delete ' + name + '?')) wire.call('deleteFile', path);
                             break;
                     }
                 });
@@ -506,7 +507,8 @@
                 const targetFolder = row.dataset.dropFolder;
                 row.style.background = '';
                 if (sourcePath && targetFolder && sourcePath !== targetFolder) {
-                    @this.moveFile(sourcePath, targetFolder);
+                    const w = document.querySelector('[wire\\:id]');
+                    if (w) Livewire.find(w.getAttribute('wire:id')).call('moveFile', sourcePath, targetFolder);
                 }
             }
         });
