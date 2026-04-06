@@ -16,6 +16,7 @@ Route::controller(DonateController::class)
 Route::controller(SiteController::class)
     ->group(function () {
         Route::get('/', 'home')->name('home');
+        Route::get('/search', 'search');
         Route::get('/site', 'site');
         Route::get('/settings', 'settings');
         Route::get('/news/{slug}', 'article');

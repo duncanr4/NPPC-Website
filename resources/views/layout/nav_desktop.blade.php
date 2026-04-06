@@ -8,7 +8,7 @@
 {{-- Search Overlay --}}
 <div id="search-overlay" style="display:none; position:fixed; top:0; left:0; right:0; z-index:100001; background:#fff; padding:24px 40px; box-shadow:0 4px 30px rgba(0,0,0,0.3);">
     <div style="max-width:900px; margin:0 auto; display:flex; align-items:center; gap:16px;">
-        <form action="/news" method="GET" style="flex:1; display:flex; align-items:center; border:2px solid #ddd; border-radius:40px; padding:8px 20px;">
+        <form action="/search" method="GET" style="flex:1; display:flex; align-items:center; border:2px solid #ddd; border-radius:40px; padding:8px 20px;">
             <input type="text" name="q" placeholder="Search this site" style="flex:1; border:none; outline:none; font-size:18px; color:#333; background:transparent;">
             <button type="submit" style="background:#5660fe; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#fff" viewBox="0 0 24 24"><path d="M21.71 20.29l-5.4-5.4A8 8 0 1 0 15 16.31l5.4 5.4a1 1 0 0 0 1.42-1.42zM5 11a6 6 0 1 1 12 0 6 6 0 0 1-12 0z"/></svg>
