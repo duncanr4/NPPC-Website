@@ -14,7 +14,7 @@
       <GraphComponent :records="filteredRecords"/>
     </Suspense>
     <Suspense>
-      <NumbersComponent/>
+      <NumbersComponent :records="filteredRecords"/>
     </Suspense>
   </section>
 </template>
