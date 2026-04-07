@@ -66,16 +66,6 @@
 
     <div class="staff-divider"></div>
 
-    {{-- Filter --}}
-    <div class="staff-filter">
-        <div class="staff-filter-label">Role</div>
-        <div class="staff-filter-btns">
-            <a href="/staff" class="staff-filter-btn {{ !request('group') ? 'active' : '' }}">All</a>
-            <a href="/staff?group=staff" class="staff-filter-btn {{ request('group') === 'staff' ? 'active' : '' }}">Staff</a>
-            <a href="/staff?group=board" class="staff-filter-btn {{ request('group') === 'board' ? 'active' : '' }}">Board</a>
-        </div>
-    </div>
-
     {{-- Staff Grid --}}
     <div class="staff-grid">
         @foreach ($staff as $member)

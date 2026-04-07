@@ -45,7 +45,7 @@
                     <ul>
 
                         <li>
-                            <a href="/about_us" title="About">About</a>
+                            <a href="/about" title="About">About</a>
                         </li>
 
                         <li>
@@ -59,7 +59,7 @@
                     </ul>
                 </nav>
                 <div class="site-footer-copyright">
-                    <p>© 2023 National Political Prisoner Coalition</p>
+                    <p>© 2026 National Political Prisoner Coalition</p>
                 </div>
             </div>
             <svg class="frame-texture" viewBox="0 0 483.45 32.11" aria-hidden="true">
