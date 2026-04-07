@@ -25,6 +25,8 @@
             @include('partials.articles.tags', ['size'=>'normal'])
             @include('partials.articles.citations')
         </div>
+
+        @include('partials.articles.cite')
     </article>
 
     <style>
