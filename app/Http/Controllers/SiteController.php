@@ -13,6 +13,7 @@ use App\Models\Prisoner;
 use App\Models\Product;
 use App\Models\Staff;
 use App\Models\Timeline;
+use App\Models\Topic;
 use Illuminate\Http\Request;
 
 final class SiteController extends Controller {
@@ -30,6 +31,46 @@ final class SiteController extends Controller {
 
     public function history() {
         return view('pages.history', ['eras' => HistoryEra::with('topics')->orderBy('sort_order')->get()]);
+    }
+
+    public function topics(Request $request, ?string $slug = null) {
+        $rootTopics = Topic::published()->roots()->with('children')->orderBy('sort_order')->get();
+
+        $activeTopic = null;
+        $activeChild = null;
+
+        if ($slug) {
+            // Try to find as root topic
+            $activeTopic = Topic::published()->where('slug', $slug)->first();
+
+            if ($activeTopic && $activeTopic->parent_id) {
+                // It's a child — find its parent
+                $activeChild = $activeTopic;
+                $activeTopic = $activeChild->parent;
+            }
+        }
+
+        if (! $activeTopic && $rootTopics->isNotEmpty()) {
+            $activeTopic = $rootTopics->first();
+        }
+
+        // Get related prisoners for this topic
+        $relatedPrisoners = collect();
+        if ($activeTopic || $activeChild) {
+            $displayTopic = $activeChild ?: $activeTopic;
+            $searchTerms = [strtolower($displayTopic->title)];
+
+            $relatedPrisoners = Prisoner::where(function ($q) use ($searchTerms) {
+                foreach ($searchTerms as $term) {
+                    $q->orWhere('ideologies', 'like', "%{$term}%")
+                      ->orWhere('affiliation', 'like', "%{$term}%")
+                      ->orWhere('era', 'like', "%{$term}%")
+                      ->orWhere('description', 'like', "%{$term}%");
+                }
+            })->limit(20)->get();
+        }
+
+        return view('pages.topics', compact('rootTopics', 'activeTopic', 'activeChild', 'relatedPrisoners'));
     }
 
     public function calendar(Request $request) {
