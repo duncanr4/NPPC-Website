@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnnualReport;
 use App\Models\Article;
+use App\Models\CalendarEntry;
 use App\Models\Event;
 use App\Models\Faq;
 use App\Models\HistoryEra;
@@ -29,6 +30,24 @@ final class SiteController extends Controller {
 
     public function history() {
         return view('pages.history', ['eras' => HistoryEra::with('topics')->orderBy('sort_order')->get()]);
+    }
+
+    public function calendar(Request $request) {
+        $month = (int) ($request->input('month', date('n')));
+        if ($month < 1 || $month > 12) {
+            $month = (int) date('n');
+        }
+
+        $entries = CalendarEntry::where('month', $month)
+            ->where('published', true)
+            ->orderBy('day')
+            ->get();
+
+        $monthName = date('F', mktime(0, 0, 0, $month, 1));
+        $today = (int) date('j');
+        $currentMonth = (int) date('n');
+
+        return view('pages.calendar', compact('entries', 'month', 'monthName', 'today', 'currentMonth'));
     }
 
     public function store(Request $request) {
