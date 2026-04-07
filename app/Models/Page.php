@@ -24,7 +24,8 @@ final class Page extends Model {
 
     protected $appends = ['url', 'image_url'];
     protected $casts   = [
-        'blocks' => 'json',
+        'blocks'      => 'json',
+        'show_in_nav' => 'boolean',
     ];
 
     public static function getBySlug(string $slug): ?self {

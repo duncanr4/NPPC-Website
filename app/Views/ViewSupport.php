@@ -14,12 +14,14 @@ abstract class ViewSupport {
         $response[] = new MenuItemDTO(title: 'Database', href: '/database', active: true);
         $response[] = new MenuItemDTO(title: 'News', href: '/news');
 
-        $parentPages = Page::where('parent_id', null)->get();
+        $parentPages = Page::where('parent_id', null)->where(function ($q) {
+            $q->where('show_in_nav', true)->orWhereNull('show_in_nav');
+        })->get();
 
         foreach ($parentPages as $page) {
             $children = [];
 
-            foreach ($page->children as $child) {
+            foreach ($page->children->filter(fn ($c) => $c->show_in_nav !== false) as $child) {
                 $children[] = new MenuItemDTO(title: $child->title, href: $child->url);
             }
 
