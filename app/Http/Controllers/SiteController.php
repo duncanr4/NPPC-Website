@@ -9,6 +9,7 @@ use App\Models\Faq;
 use App\Models\HistoryEra;
 use App\Models\Page;
 use App\Models\Prisoner;
+use App\Models\Product;
 use App\Models\Staff;
 use App\Models\Timeline;
 use Illuminate\Http\Request;
@@ -28,6 +29,19 @@ final class SiteController extends Controller {
 
     public function history() {
         return view('pages.history', ['eras' => HistoryEra::with('topics')->orderBy('sort_order')->get()]);
+    }
+
+    public function store(Request $request) {
+        $category = $request->input('category');
+        $query = Product::published()->orderBy('sort_order');
+        if ($category) {
+            $query->where('category', $category);
+        }
+        $products = $query->get();
+        $categories = Product::published()->whereNotNull('category')->where('category', '!=', '')->distinct()->pluck('category');
+        $featured = Product::published()->featured()->first();
+
+        return view('pages.store', compact('products', 'categories', 'featured', 'category'));
     }
 
     public function events(Request $request) {
