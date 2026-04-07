@@ -219,6 +219,12 @@ final class SiteController extends Controller {
         return view('pages.search', ['query' => $q, 'results' => $results]);
     }
 
+    public function prisoner(string $id) {
+        $prisoner = Prisoner::with(['cases.institution'])->findOrFail($id);
+
+        return view('pages.prisoner', compact('prisoner'));
+    }
+
     public function home() {
         return view('home');
     }
