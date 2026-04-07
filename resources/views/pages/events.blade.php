@@ -60,47 +60,73 @@
     <div class="events-content">
         <div class="events-main">
             <div class="events-tabs">
-                <div class="events-tab-indicator" style="left: {{ $tab === 'past' ? '108px' : '0' }};"></div>
-                <a href="/events?tab=upcoming" class="events-tab {{ $tab === 'upcoming' ? 'active' : '' }}" data-no-fade>Upcoming</a>
-                <a href="/events?tab=past" class="events-tab {{ $tab === 'past' ? 'active' : '' }}" data-no-fade>Past</a>
+                <div class="events-tab-indicator" id="tab-indicator"></div>
+                <a href="#" class="events-tab active" data-no-fade onclick="switchTab('upcoming', this); return false;">Upcoming</a>
+                <a href="#" class="events-tab" data-no-fade onclick="switchTab('past', this); return false;">Past</a>
             </div>
             <div class="events-tab-line"></div>
 
-            @php $events = $tab === 'past' ? $past : $upcoming; @endphp
+            {{-- Upcoming --}}
+            <div id="events-upcoming">
+                @if($upcoming->isEmpty())
+                    <div class="events-empty">No upcoming events at this time. Check back soon!</div>
+                @else
+                    @foreach($upcoming as $event)
+                        <div class="event-card">
+                            <div class="event-date-col">
+                                <div class="event-date-month">{{ $event->event_date->format('M') }}</div>
+                                <div class="event-date-day">{{ $event->event_date->format('j') }}</div>
+                            </div>
+                            <div class="event-divider"></div>
+                            @if($event->image)
+                                <img src="{{ Storage::url($event->image) }}" class="event-image" alt="">
+                            @endif
+                            <div class="event-info">
+                                <div class="event-info-title">{{ $event->title }}</div>
+                                @if($event->time || $event->location)
+                                    <div class="event-info-meta">
+                                        {{ $event->time }}{{ $event->time && $event->location ? ' · ' : '' }}{{ $event->location }}
+                                    </div>
+                                @endif
+                                @if($event->event_url)
+                                    <a href="{{ $event->event_url }}" target="_blank" class="event-info-details">DETAILS &rarr;</a>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
+            </div>
 
-            @if($events->isEmpty())
-                <div class="events-empty">
-                    @if($tab === 'upcoming')
-                        No upcoming events at this time. Check back soon!
-                    @else
-                        No past events found.
-                    @endif
-                </div>
-            @else
-                @foreach($events as $event)
-                    <div class="event-card">
-                        <div class="event-date-col">
-                            <div class="event-date-month">{{ $event->event_date->format('M') }}</div>
-                            <div class="event-date-day">{{ $event->event_date->format('j') }}</div>
-                        </div>
-                        <div class="event-divider"></div>
-                        @if($event->image)
-                            <img src="{{ Storage::url($event->image) }}" class="event-image" alt="">
-                        @endif
-                        <div class="event-info">
-                            <div class="event-info-title">{{ $event->title }}</div>
-                            @if($event->time || $event->location)
-                                <div class="event-info-meta">
-                                    {{ $event->time }}{{ $event->time && $event->location ? ' · ' : '' }}{{ $event->location }}
-                                </div>
+            {{-- Past --}}
+            <div id="events-past" style="display:none;">
+                @if($past->isEmpty())
+                    <div class="events-empty">No past events found.</div>
+                @else
+                    @foreach($past as $event)
+                        <div class="event-card">
+                            <div class="event-date-col">
+                                <div class="event-date-month">{{ $event->event_date->format('M') }}</div>
+                                <div class="event-date-day">{{ $event->event_date->format('j') }}</div>
+                            </div>
+                            <div class="event-divider"></div>
+                            @if($event->image)
+                                <img src="{{ Storage::url($event->image) }}" class="event-image" alt="">
                             @endif
-                            @if($event->event_url)
-                                <a href="{{ $event->event_url }}" target="_blank" class="event-info-details">DETAILS &rarr;</a>
-                            @endif
+                            <div class="event-info">
+                                <div class="event-info-title">{{ $event->title }}</div>
+                                @if($event->time || $event->location)
+                                    <div class="event-info-meta">
+                                        {{ $event->time }}{{ $event->time && $event->location ? ' · ' : '' }}{{ $event->location }}
+                                    </div>
+                                @endif
+                                @if($event->event_url)
+                                    <a href="{{ $event->event_url }}" target="_blank" class="event-info-details">DETAILS &rarr;</a>
+                                @endif
+                            </div>
                         </div>
-                    </div>
-                @endforeach
-            @endif
+                    @endforeach
+                @endif
+            </div>
         </div>
 
         @if($series->isNotEmpty())
@@ -116,4 +142,17 @@
         @endif
     </div>
 </div>
+
+<script>
+function switchTab(tab, btn) {
+    document.getElementById('events-upcoming').style.display = tab === 'upcoming' ? 'block' : 'none';
+    document.getElementById('events-past').style.display = tab === 'past' ? 'block' : 'none';
+
+    document.querySelectorAll('.events-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+
+    var indicator = document.getElementById('tab-indicator');
+    indicator.style.left = tab === 'past' ? '108px' : '0';
+}
+</script>
 @endsection
