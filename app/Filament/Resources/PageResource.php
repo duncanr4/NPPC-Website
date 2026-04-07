@@ -29,6 +29,10 @@ class PageResource extends Resource {
                 Forms\Components\FileUpload::make('header_image')
                     ->image()
                     ->directory('pages'),
+                Forms\Components\Toggle::make('show_in_nav')
+                    ->label('Show in navigation')
+                    ->default(true)
+                    ->helperText('Uncheck to hide this page from the navigation menu. The page will still be accessible by URL.'),
                 \FilamentTiptapEditor\TiptapEditor::make('body')
                     ->profile('default')
                     ->columnSpanFull(),
@@ -44,6 +48,9 @@ class PageResource extends Resource {
                 Tables\Columns\TextColumn::make('slug'),
                 Tables\Columns\TextColumn::make('parent.title')
                     ->label('Parent'),
+                Tables\Columns\IconColumn::make('show_in_nav')
+                    ->label('In Nav')
+                    ->boolean(),
             ])
             ->filters([])
             ->actions([
