@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnnualReport;
 use App\Models\Article;
+use App\Models\Event;
 use App\Models\Faq;
 use App\Models\HistoryEra;
 use App\Models\Page;
@@ -27,6 +28,15 @@ final class SiteController extends Controller {
 
     public function history() {
         return view('pages.history', ['eras' => HistoryEra::with('topics')->orderBy('sort_order')->get()]);
+    }
+
+    public function events(Request $request) {
+        $tab = $request->input('tab', 'upcoming');
+        $upcoming = Event::published()->upcoming()->get();
+        $past = Event::published()->past()->get();
+        $series = Event::published()->whereNotNull('series')->where('series', '!=', '')->distinct()->pluck('series');
+
+        return view('pages.events', compact('upcoming', 'past', 'series', 'tab'));
     }
 
     public function volunteer() {
