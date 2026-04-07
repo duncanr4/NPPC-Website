@@ -266,6 +266,37 @@ final class SiteController extends Controller {
         return view('pages.podcast', compact('episodes'));
     }
 
+    public function petitionPage(string $slug) {
+        $petition = \App\Models\Petition::where('slug', $slug)->where('published', true)->firstOrFail();
+        $recentSigners = $petition->signatures()->latest()->limit(5)->get();
+
+        return view('pages.petition', compact('petition', 'recentSigners'));
+    }
+
+    public function petitionSign(Request $request, string $slug) {
+        $petition = \App\Models\Petition::where('slug', $slug)->firstOrFail();
+
+        $request->validate([
+            'first_name' => 'required|max:100',
+            'last_name'  => 'required|max:100',
+            'email'      => 'required|email',
+        ]);
+
+        \App\Models\PetitionSignature::create([
+            'petition_id'    => $petition->id,
+            'first_name'     => $request->input('first_name'),
+            'last_name'      => $request->input('last_name'),
+            'email'          => $request->input('email'),
+            'city'           => $request->input('city'),
+            'state'          => $request->input('state'),
+            'zip_code'       => $request->input('zip_code'),
+            'phone'          => $request->input('phone'),
+            'custom_message' => $request->input('custom_message'),
+        ]);
+
+        return redirect("/petition/{$slug}?signed=true");
+    }
+
     public function prisoner(string $id) {
         $prisoner = Prisoner::with(['cases.institution'])->findOrFail($id);
 
