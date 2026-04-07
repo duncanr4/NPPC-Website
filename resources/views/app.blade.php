@@ -93,9 +93,10 @@ $isHome = request()->segment(1) == ''
                 link.target === '_blank' || e.ctrlKey || e.metaKey) return;
 
             // Skip fade for same-page navigation (query params only)
-            var currentPath = window.location.pathname;
-            var linkPath = href.split('?')[0];
-            if (linkPath === currentPath || linkPath === '') return;
+            var currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
+            var linkUrl = new URL(href, window.location.origin);
+            var linkPath = linkUrl.pathname.replace(/\/+$/, '') || '/';
+            if (linkPath === currentPath) return;
 
             e.preventDefault();
             overlay.style.opacity = '1';
