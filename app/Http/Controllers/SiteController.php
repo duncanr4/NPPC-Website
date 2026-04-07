@@ -47,8 +47,17 @@ final class SiteController extends Controller {
         return view('pages.prisoner-outreach');
     }
 
-    public function staff() {
-        return view('pages.staff', ['staff' => Staff::getStaffMembers()]);
+    public function staff(Request $request) {
+        $group = $request->input('group');
+        if ($group === 'board') {
+            $staff = Staff::getBoardMembers();
+        } elseif ($group === 'staff') {
+            $staff = Staff::getStaffMembers();
+        } else {
+            $staff = Staff::where('published', true)->get();
+        }
+
+        return view('pages.staff', ['staff' => $staff]);
     }
 
     public function boardOfDirectors() {
