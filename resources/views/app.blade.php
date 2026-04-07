@@ -90,7 +90,8 @@ $isHome = request()->segment(1) == ''
             // Skip external links, anchors, javascript, new tabs, admin links, and same-page query changes
             if (!href || href.startsWith('#') || href.startsWith('javascript') ||
                 href.startsWith('http') || href.startsWith('/admin') ||
-                link.target === '_blank' || e.ctrlKey || e.metaKey) return;
+                link.target === '_blank' || e.ctrlKey || e.metaKey ||
+                link.hasAttribute('data-no-fade')) return;
 
             // Skip fade for same-page navigation (query params only)
             var currentPath = window.location.pathname.replace(/\/+$/, '') || '/';

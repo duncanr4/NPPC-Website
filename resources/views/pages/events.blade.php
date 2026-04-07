@@ -61,8 +61,8 @@
         <div class="events-main">
             <div class="events-tabs">
                 <div class="events-tab-indicator" style="left: {{ $tab === 'past' ? '108px' : '0' }};"></div>
-                <a href="/events?tab=upcoming" class="events-tab {{ $tab === 'upcoming' ? 'active' : '' }}">Upcoming</a>
-                <a href="/events?tab=past" class="events-tab {{ $tab === 'past' ? 'active' : '' }}">Past</a>
+                <a href="/events?tab=upcoming" class="events-tab {{ $tab === 'upcoming' ? 'active' : '' }}" data-no-fade>Upcoming</a>
+                <a href="/events?tab=past" class="events-tab {{ $tab === 'past' ? 'active' : '' }}" data-no-fade>Past</a>
             </div>
             <div class="events-tab-line"></div>
 
