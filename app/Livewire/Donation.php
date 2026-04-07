@@ -23,8 +23,8 @@ class Donation extends Component {
     ];
 
     public array $amountOptions = [
-        5, 10, 25, 50,
-        75, 100, 200, 0,
+        5, 8, 10, 15,
+        20, 25, 30, 0,
     ];
 
     public function mount(): void {
