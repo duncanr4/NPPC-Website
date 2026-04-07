@@ -260,6 +260,12 @@ final class SiteController extends Controller {
         return view('pages.search', ['query' => $q, 'results' => $results]);
     }
 
+    public function podcast() {
+        $episodes = \App\Models\PodcastEpisode::published()->orderBy('sort_order')->get();
+
+        return view('pages.podcast', compact('episodes'));
+    }
+
     public function prisoner(string $id) {
         $prisoner = Prisoner::with(['cases.institution'])->findOrFail($id);
 

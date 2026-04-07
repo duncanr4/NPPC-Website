@@ -195,6 +195,16 @@
         </div>
     @endif
 
+    {{-- Podcast Episodes --}}
+    @php $episodes = \App\Models\PodcastEpisode::published()->where('prisoner_id', $prisoner->id)->orderBy('sort_order')->get(); @endphp
+    @if($episodes->isNotEmpty())
+        <div class="prisoner-divider"></div>
+        <div style="max-width: 800px;">
+            <h2 class="prisoner-cases-title">Related Episodes</h2>
+            @include('sections.podcast-player', ['episodes' => $episodes])
+        </div>
+    @endif
+
     {{-- Cases --}}
     @if($prisoner->cases->isNotEmpty())
         <div class="prisoner-divider"></div>
