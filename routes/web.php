@@ -26,6 +26,7 @@ Route::controller(SiteController::class)
         Route::get('map', 'map');
         Route::get('faq', 'faq');
         Route::get('staff', 'staff');
+        Route::get('events', 'events');
         Route::get('volunteer', 'volunteer');
         Route::get('prisoner-outreach', 'prisonerOutreach');
         Route::get('board-of-directors', 'boardOfDirectors');
