@@ -28,6 +28,7 @@ Route::controller(SiteController::class)
         Route::get('map', 'map');
         Route::get('faq', 'faq');
         Route::get('staff', 'staff');
+        Route::get('podcast', 'podcast');
         Route::get('store', 'store');
         Route::get('events', 'events');
         Route::get('volunteer', 'volunteer');
