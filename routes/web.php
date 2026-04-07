@@ -23,6 +23,7 @@ Route::controller(SiteController::class)
         Route::get('history', 'history');
         Route::get('timeline', 'timeline');
         Route::get('annual-report', 'annualReport');
+        Route::get('calendar', 'calendar');
         Route::get('map', 'map');
         Route::get('faq', 'faq');
         Route::get('staff', 'staff');
