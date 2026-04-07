@@ -62,7 +62,7 @@ const mainCase = props.record.cases[0]
     <header class="flex justify-between font-bold border-b-2  border-opacity-50 border-white mb-4 pb-2">
       <div class="flex justify-start">
         <h2 class="">
-          <span class="text-xl md:text-3xl">{{ record.name ? (record.AKA ? `${record.AKA} (${record.name})` : record.name) : '' }}</span>
+          <a :href="'/prisoner/' + record.id" class="text-xl md:text-3xl" style="color:#fff; text-decoration:none; border-bottom:1px solid rgba(255,255,255,0.2);">{{ record.name ? (record.AKA ? `${record.AKA} (${record.name})` : record.name) : '' }}</a>
         </h2>
       </div>
       <div class="meta flex justify-end">
