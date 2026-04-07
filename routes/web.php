@@ -33,6 +33,8 @@ Route::controller(SiteController::class)
         Route::get('events', 'events');
         Route::get('volunteer', 'volunteer');
         Route::get('prisoner-outreach', 'prisonerOutreach');
+        Route::get('petition/{slug}', 'petitionPage');
+        Route::post('petition/{slug}/sign', 'petitionSign');
         Route::get('prisoner/{id}', 'prisoner');
         Route::get('board-of-directors', 'boardOfDirectors');
         Route::get('/{slug}', 'page');
