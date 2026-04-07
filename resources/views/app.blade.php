@@ -87,10 +87,15 @@ $isHome = request()->segment(1) == ''
             if (!link) return;
 
             var href = link.getAttribute('href');
-            // Skip external links, anchors, javascript, new tabs, and admin links
+            // Skip external links, anchors, javascript, new tabs, admin links, and same-page query changes
             if (!href || href.startsWith('#') || href.startsWith('javascript') ||
                 href.startsWith('http') || href.startsWith('/admin') ||
                 link.target === '_blank' || e.ctrlKey || e.metaKey) return;
+
+            // Skip fade for same-page navigation (query params only)
+            var currentPath = window.location.pathname;
+            var linkPath = href.split('?')[0];
+            if (linkPath === currentPath || linkPath === '') return;
 
             e.preventDefault();
             overlay.style.opacity = '1';
