@@ -53,6 +53,69 @@ final class Prisoner extends Model {
         'awaiting_trial'      => 'boolean',
     ];
 
+    protected static function booted(): void {
+        parent::booted();
+
+        static::creating(function ($model) {
+            if (! $model->slug && $model->name) {
+                $model->slug = self::generateUniqueSlug($model->name, $model->middle_name, $model->aka);
+            }
+        });
+
+        static::updating(function ($model) {
+            if ($model->isDirty('name') && $model->name) {
+                $model->slug = self::generateUniqueSlug($model->name, $model->middle_name, $model->aka, $model->id);
+            }
+        });
+    }
+
+    private static function generateUniqueSlug(string $name, ?string $middleName = null, ?string $aka = null, ?string $excludeId = null): string {
+        $baseSlug = \Illuminate\Support\Str::slug($name);
+
+        $query = self::where('slug', $baseSlug);
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        if (! $query->exists()) {
+            return $baseSlug;
+        }
+
+        // Try with middle name
+        if ($middleName) {
+            $parts = explode(' ', $name);
+            $first = $parts[0] ?? '';
+            $last = end($parts);
+            $withMiddle = \Illuminate\Support\Str::slug($first.' '.$middleName.' '.$last);
+
+            $query2 = self::where('slug', $withMiddle);
+            if ($excludeId) {
+                $query2->where('id', '!=', $excludeId);
+            }
+            if (! $query2->exists()) {
+                return $withMiddle;
+            }
+        }
+
+        // Append number
+        $counter = 2;
+        while (true) {
+            $slug = $baseSlug.'-'.$counter;
+            $query3 = self::where('slug', $slug);
+            if ($excludeId) {
+                $query3->where('id', '!=', $excludeId);
+            }
+            if (! $query3->exists()) {
+                return $slug;
+            }
+            $counter++;
+        }
+    }
+
+    public function getUrlAttribute(): string {
+        return '/prisoner/'.($this->slug ?: $this->id);
+    }
+
     public function cases(): HasMany {
         return $this->hasMany(PrisonerCase::class);
     }

@@ -297,8 +297,15 @@ final class SiteController extends Controller {
         return redirect("/petition/{$slug}?signed=true");
     }
 
-    public function prisoner(string $id) {
-        $prisoner = Prisoner::with(['cases.institution'])->findOrFail($id);
+    public function prisoner(string $slug) {
+        // Try slug first, fall back to ID for backwards compatibility
+        $prisoner = Prisoner::with(['cases.institution'])->where('slug', $slug)->first()
+            ?? Prisoner::with(['cases.institution'])->findOrFail($slug);
+
+        // Redirect old ID URLs to slug URLs for SEO
+        if ($prisoner->slug && $slug !== $prisoner->slug) {
+            return redirect('/prisoner/'.$prisoner->slug, 301);
+        }
 
         return view('pages.prisoner', compact('prisoner'));
     }
