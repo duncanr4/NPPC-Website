@@ -53,7 +53,7 @@ final class Prisoner extends Model {
         'awaiting_trial'      => 'boolean',
     ];
 
-    protected static function booted(): void {
+    public static function booted(): void {
         parent::booted();
 
         static::creating(function ($model) {
