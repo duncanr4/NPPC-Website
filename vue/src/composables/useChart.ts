@@ -95,7 +95,7 @@ export function useChart(): {
         })
 
         const eras = erasUnsorted
-            .filter((value, index, self) => self.indexOf(value) === index)
+            .filter((value, index, self) => self.indexOf(value) === index && value >= 1994)
             .sort((a, b) => a - b);
 
 
