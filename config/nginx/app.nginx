@@ -1,6 +1,6 @@
 server {
     listen 80;
-    root /srv/marisam/public;
+    root /var/www/NPPC-Website/public;
     server_name nationalpoliticalprisonercoalition.org *.nationalpoliticalprisonercoalition.org;
 
     #access_log /srv/www/example.com/logs/access.log;
