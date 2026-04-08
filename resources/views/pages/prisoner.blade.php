@@ -1,6 +1,14 @@
 @extends('app')
 
+@section('title'){{ $prisoner->name }} — National Political Prisoner Coalition @endsection
+
 @section('head')
+<meta name="description" content="{{ $prisoner->name }}{{ $prisoner->aka ? ' (AKA '.$prisoner->aka.')' : '' }} — {{ substr(strip_tags($prisoner->description ?? ''), 0, 155) }}">
+<meta property="og:title" content="{{ $prisoner->name }} — NPPC">
+<meta property="og:description" content="{{ substr(strip_tags($prisoner->description ?? ''), 0, 200) }}">
+@if($prisoner->photo)<meta property="og:image" content="{{ asset('storage/'.$prisoner->photo) }}">@endif
+<meta property="og:url" content="{{ url('/prisoner/'.$prisoner->slug) }}">
+<meta property="og:type" content="profile">
 <style>
     .prisoner-page { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
     .prisoner-hero { display: flex; gap: 48px; padding: 48px 0 40px; align-items: flex-start; }

@@ -35,7 +35,7 @@ Route::controller(SiteController::class)
         Route::get('prisoner-outreach', 'prisonerOutreach');
         Route::get('petition/{slug}', 'petitionPage');
         Route::post('petition/{slug}/sign', 'petitionSign');
-        Route::get('prisoner/{id}', 'prisoner');
+        Route::get('prisoner/{slug}', 'prisoner');
         Route::get('board-of-directors', 'boardOfDirectors');
         Route::get('/{slug}', 'page');
     });

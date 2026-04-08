@@ -47,6 +47,7 @@ class PrisonerApiController extends Controller {
 
             return [
                 'id'                    => $prisoner->id,
+                'slug'                  => $prisoner->slug,
                 'name'                  => $prisoner->name,
                 'Photo'                 => $prisoner->photo ? asset('storage/'.$prisoner->photo) : null,
                 'Description'           => $prisoner->description,
