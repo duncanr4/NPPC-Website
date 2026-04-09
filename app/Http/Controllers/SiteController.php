@@ -82,7 +82,8 @@ final class SiteController extends Controller {
         $day = $request->input('day');
         $view = $request->input('view', 'month');
 
-        $entries = CalendarEntry::where('month', $month)
+        $entries = CalendarEntry::with('prisoner')
+            ->where('month', $month)
             ->where('published', true)
             ->orderBy('day')
             ->get();

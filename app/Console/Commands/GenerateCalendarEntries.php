@@ -87,6 +87,8 @@ class GenerateCalendarEntries extends Command {
                         'year'        => $year,
                         'title'       => $event['title'],
                         'description' => null,
+                        'image'       => $case->prisoner->photo,
+                        'prisoner_id' => $case->prisoner->id,
                         'published'   => true,
                     ]);
                 }
