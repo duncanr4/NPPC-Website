@@ -95,33 +95,6 @@ class GenerateCalendarEntries extends Command {
             }
         }
 
-        // Also generate from prisoner birthdates and death dates
-        $prisoners = Prisoner::all();
-        foreach ($prisoners as $prisoner) {
-            if ($prisoner->birthdate) {
-                $month = (int) $prisoner->birthdate->format('n');
-                $day = (int) $prisoner->birthdate->format('j');
-                $year = (int) $prisoner->birthdate->format('Y');
-
-                if (! CalendarEntry::where('month', $month)->where('day', $day)->exists()) {
-                    if ($dryRun) {
-                        $this->line(sprintf('  %s %02d → %s born (%d)', $prisoner->birthdate->format('M'), $day, $prisoner->name, $year));
-                    } else {
-                        CalendarEntry::create([
-                            'month'       => $month,
-                            'day'         => $day,
-                            'year'        => $year,
-                            'title'       => $prisoner->name.' born',
-                            'published'   => true,
-                        ]);
-                    }
-                    $created++;
-                } else {
-                    $skipped++;
-                }
-            }
-        }
-
         if ($dryRun) {
             $this->warn("{$created} entries would be created, {$skipped} skipped (slot taken).");
         } else {
