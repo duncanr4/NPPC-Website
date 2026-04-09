@@ -22,7 +22,11 @@ final class SiteController extends Controller {
             return view('page', compact('page'));
         }
 
-        return view('pages.'.$slug);
+        if (view()->exists('pages.'.$slug)) {
+            return view('pages.'.$slug);
+        }
+
+        abort(404);
     }
 
     public function timeline() {
