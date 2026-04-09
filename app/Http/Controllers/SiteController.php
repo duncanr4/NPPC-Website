@@ -79,6 +79,9 @@ final class SiteController extends Controller {
             $month = (int) date('n');
         }
 
+        $day = $request->input('day');
+        $view = $request->input('view', 'month');
+
         $entries = CalendarEntry::where('month', $month)
             ->where('published', true)
             ->orderBy('day')
@@ -88,7 +91,21 @@ final class SiteController extends Controller {
         $today = (int) date('j');
         $currentMonth = (int) date('n');
 
-        return view('pages.calendar', compact('entries', 'month', 'monthName', 'today', 'currentMonth'));
+        // Day view: find specific entry
+        $dayEntry = null;
+        if ($view === 'day' && $day) {
+            $dayEntry = $entries->where('day', (int) $day)->first();
+        }
+        // Default to today's entry if no day specified in day view
+        if ($view === 'day' && ! $dayEntry && $month === $currentMonth) {
+            $dayEntry = $entries->where('day', $today)->first();
+        }
+        // Fall back to first entry if nothing found
+        if ($view === 'day' && ! $dayEntry && $entries->isNotEmpty()) {
+            $dayEntry = $entries->first();
+        }
+
+        return view('pages.calendar', compact('entries', 'month', 'monthName', 'today', 'currentMonth', 'view', 'dayEntry'));
     }
 
     public function store(Request $request) {
