@@ -24,21 +24,20 @@
 
     /* Month grid */
     .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding-bottom: 80px; }
-    .cal-card { border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; overflow: hidden; transition: border-color 0.2s; cursor: pointer; text-decoration: none; display: block; }
+    .cal-card { border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; overflow: hidden; transition: border-color 0.2s; cursor: pointer; text-decoration: none; display: flex; flex-direction: column; }
     .cal-card:hover { border-color: rgba(255,255,255,0.3); }
     .cal-card.today { border-color: #5660fe; border-width: 2px; }
-    .cal-card-top { padding: 24px 20px 20px; text-align: center; }
-    .cal-card-day { font-size: 5rem; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 16px; }
+    .cal-card-top { padding: 24px 20px 20px; text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .cal-card-day { font-size: 4rem; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 12px; }
     .cal-card.today .cal-card-day { color: #5660fe; }
-    .cal-card-title { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.85); line-height: 1.4; min-height: 42px; }
-    .cal-card-divider { width: 24px; height: 2px; background: rgba(255,255,255,0.3); margin: 16px auto 8px; }
-    .cal-card-year { font-size: 14px; color: rgba(255,255,255,0.5); font-weight: 600; }
-    .cal-card-image { aspect-ratio: 16/10; overflow: hidden; }
-    .cal-card-image img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(60%); transition: filter 0.3s; }
+    .cal-card-title { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.85); line-height: 1.4; }
+    .cal-card-divider { width: 24px; height: 2px; background: rgba(255,255,255,0.3); margin: 12px auto 6px; }
+    .cal-card-year { font-size: 13px; color: rgba(255,255,255,0.5); font-weight: 600; }
+    .cal-card-image { height: 160px; overflow: hidden; flex-shrink: 0; }
+    .cal-card-image img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(40%); transition: filter 0.3s; }
     .cal-card:hover .cal-card-image img { filter: grayscale(0); }
-    .cal-card-placeholder { width: 100%; height: 100%; min-height: 120px; background: #111; }
-    .cal-empty-card { border: 1px dashed rgba(255,255,255,0.08); border-radius: 4px; padding: 40px 20px; text-align: center; }
-    .cal-empty-day { font-size: 5rem; font-weight: 900; color: rgba(255,255,255,0.08); line-height: 1; }
+    .cal-empty-card { border: 1px dashed rgba(255,255,255,0.08); border-radius: 4px; display: flex; align-items: center; justify-content: center; min-height: 280px; }
+    .cal-empty-day { font-size: 4rem; font-weight: 900; color: rgba(255,255,255,0.06); line-height: 1; }
 
     /* Day view */
     .cal-day-view { display: flex; gap: 0; min-height: 70vh; padding-bottom: 80px; }
@@ -182,7 +181,7 @@
                     <a href="/calendar?month={{ $month }}&view=day&day={{ $d }}" class="cal-card {{ ($month === $currentMonth && $d === $today) ? 'today' : '' }}" data-no-fade>
                         <div class="cal-card-top">
                             @if($entry->prisoner && $entry->prisoner->photo)
-                                <img src="{{ asset('storage/'.$entry->prisoner->photo) }}" style="width:56px; height:56px; border-radius:50%; object-fit:cover; margin:0 auto 12px; display:block;">
+                                <img src="{{ asset('storage/'.$entry->prisoner->photo) }}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin:0 auto 8px; display:block; border:2px solid rgba(255,255,255,0.15);">
                             @endif
                             <div class="cal-card-day">{{ str_pad($d, 2, '0', STR_PAD_LEFT) }}</div>
                             <div class="cal-card-title">{{ $entry->title }}</div>
