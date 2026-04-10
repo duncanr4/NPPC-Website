@@ -8,16 +8,35 @@
 
 @section('body')
     <div class="line mt-8"></div>
-    <h1 class="text-6xl mt-12">{{$article->title}}</h1>
+
+    {{-- Category label --}}
+    @if($article->category)
+        <div class="mt-12 mb-4 flex items-center gap-2">
+            <span style="display:inline-block; padding:4px 12px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.8);">{{ $article->category->title }}</span>
+        </div>
+    @endif
+
+    <h1 class="text-6xl {{ $article->category ? '' : 'mt-12' }}">{{$article->title}}</h1>
 
     <div class="flex justify-between">
         @include('partials.articles.author')
-        @include('partials.articles.share')
+        <div class="flex items-center gap-2">
+            @include('partials.articles.share')
+            <button onclick="window.print()" class="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white border border-white/20 hover:bg-white/10 transition print-hide" title="Print article">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print
+            </button>
+        </div>
     </div>
 
 
-    <div class=" h-[420px] rounded-lg mt-12 mb-6 overflow-hidden  justify-center items-center bg-center bg-cover" style="background-image: url('{{ $article->image_url }}')">
+    <div class=" h-[420px] rounded-lg mt-12 mb-{{ $article->image_caption ? '2' : '6' }} overflow-hidden  justify-center items-center bg-center bg-cover" style="background-image: url('{{ $article->image_url }}')">
     </div>
+    @if($article->image_caption)
+        <div style="font-size:13px; color:rgba(255,255,255,0.4); font-style:italic; margin-bottom:24px;">{{ $article->image_caption }}</div>
+    @endif
     <article class="mt-12 page-content">
         {!! $article->body !!}
 
@@ -48,5 +67,13 @@
         .page-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5em 0; }
         .page-content table { width: 100%; border-collapse: collapse; margin: 1.5em 0; }
         .page-content th, .page-content td { border: 1px solid rgba(255,255,255,0.15); padding: 8px 12px; text-align: left; }
+
+        @@media print {
+            body { background: #fff !important; color: #000 !important; }
+            nav, footer, .print-hide, .scroll-top { display: none !important; }
+            h1, h2, h3, h4, .page-content, .page-content p, .page-content li, .page-content blockquote { color: #000 !important; }
+            .page-content a { color: #333 !important; }
+            article.page-content { margin-top: 1rem !important; }
+        }
     </style>
 @endsection

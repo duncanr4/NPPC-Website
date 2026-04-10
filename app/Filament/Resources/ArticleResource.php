@@ -25,6 +25,11 @@ class ArticleResource extends Resource {
                 Forms\Components\FileUpload::make('image')
                     ->image()
                     ->directory('articles'),
+                Forms\Components\TextInput::make('image_caption')
+                    ->maxLength(500)
+                    ->label('Image Caption')
+                    ->placeholder('e.g. Photo by John Doe / Reuters')
+                    ->helperText('Credit or caption displayed below the article image.'),
                 \FilamentTiptapEditor\TiptapEditor::make('body')
                     ->profile('default')
                     ->columnSpanFull(),
