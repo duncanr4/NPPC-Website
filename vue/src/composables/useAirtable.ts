@@ -71,11 +71,17 @@ export default function useAirtable() {
     }
 
     const fetchRecords = async () => {
-        const req = await axios.get(`/api/prisoners`)
-        const prisoners: Prisoner[] = req.data
+        let prisoners: Prisoner[];
+        try {
+            const req = await axios.get(`/api/prisoners`)
+            prisoners = req.data
+        } catch (error) {
+            console.error('Failed to fetch prisoner data:', error)
+            return
+        }
 
         if (!prisoners.length) {
-            throw new Error('No prisoners')
+            return
         }
 
         prisoners.forEach((prisoner: Prisoner) => {

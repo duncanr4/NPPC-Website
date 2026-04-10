@@ -4,7 +4,6 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Filament\Models\Contracts\FilamentUser;
@@ -14,9 +13,7 @@ use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
- * @property bool   $is_admin
- * @property string $site_id
- * @property Site   $site
+ * @property bool $is_admin
  */
 final class User extends Authenticatable implements FilamentUser {
     use HasApiTokens;
@@ -59,19 +56,7 @@ final class User extends Authenticatable implements FilamentUser {
         return self::me()?->is_admin ?? false;
     }
 
-    public static function getCurrentSite(): ?Site {
-        return self::me()?->site;
-    }
-
-    public static function getSiteId(): ?string {
-        return self::me()?->site_id;
-    }
-
     public static function me(): ?self {
         return Auth::user();
-    }
-
-    public function site(): BelongsTo {
-        return $this->belongsTo(Site::class);
     }
 }

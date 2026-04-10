@@ -59,6 +59,10 @@ class Donation extends Component {
      * @throws ApiErrorException
      */
     public function donate(): void {
+        if (! $this->setAmount || $this->setAmount < 1) {
+            return;
+        }
+
         $stripe  = new Stripe();
         $amount  = $this->setAmount * 100;
         $session = $stripe->createPaymentSession($this->interval, $amount);

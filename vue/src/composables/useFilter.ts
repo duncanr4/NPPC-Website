@@ -33,10 +33,6 @@ export function useFilter(): {
     };
 
     const checkPrisonerFilter = (prisoner: PrisonerRecord, buttonFilter: Ref<string>, cleanFilterObject?: Record<any, any>, nameSearch?: Ref<string>): boolean => {
-        const _filters: Record<any, any>|null = cleanFilterObject  ? cleanFilterObject.value : null
-
-        let recordFilterFailed = false
-
         if(buttonFilter.value && !prisoner[buttonFilter.value]) {
             return false
         }
@@ -51,32 +47,23 @@ export function useFilter(): {
             }
         }
 
+        if(!cleanFilterObject) return true
 
-        if(!_filters) return true
-
-        Object.keys(_filters).forEach((key) => {
+        const keys = Object.keys(cleanFilterObject)
+        for (const key of keys) {
             const field = fieldFiltersRel[key]
             // @ts-ignore
             const prisonerValue: string|Array<string> = prisoner[field]
-            const filterValues = _filters[key]
-            if(!prisonerValue) {
-                recordFilterFailed = true
-            }
+            const filterValues = cleanFilterObject[key]
 
-            if(prisoner.name.includes('Jessica')) {
-                console.log({field,prisonerValue,filterValues})
-            }
-
-            if(!prisonerValue || !filterValues.length) return false
-
+            if(!filterValues.length) continue
+            if(!prisonerValue) return false
 
             const matchesFilter = checkFilterValues(filterValues, prisonerValue)
+            if(!matchesFilter) return false
+        }
 
-            if(!matchesFilter) recordFilterFailed = true
-        })
-
-        // Returns true to show
-        return !recordFilterFailed
+        return true
     }
     return { checkPrisonerFilter }
 }

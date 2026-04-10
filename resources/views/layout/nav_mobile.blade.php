@@ -35,7 +35,7 @@ $menuItems = ViewSupport::getMenuItems();
                 <!-- Current: "border-indigo-500 text-gray-900", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700" -->
                 @foreach($menuItems as $item)
                     <div class="inline-flex relative menu-item">
-                        <a href="{{$item->href}}" class="inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium text-white {{ $item->active ? 'border-indigo-500' : 'border-transparent over:border-gray-300 hover:border-indigo-500' }}">{{$item->title}}</a>
+                        <a href="{{$item->href}}" class="inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium text-white {{ $item->active ? 'border-indigo-500' : 'border-transparent hover:border-gray-300 hover:border-indigo-500' }}">{{$item->title}}</a>
                         @if($item->children)
                             <div class=" menu-item-children  absolute left-1/2 z-10 -mt-1  w-screen max-w-min -translate-x-1/2 top-12 px-4">
                                 <div class="w-56 shrink border border-6 border-indigo-600 rounded-xl bg-slate-900 p-2 text-sm font-semibold leading-6 text-gray-900 shadow-lg ring-1 ring-gray-900/5">

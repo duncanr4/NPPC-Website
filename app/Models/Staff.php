@@ -23,6 +23,8 @@ class Staff extends Model {
         'image',
         'about',
         'position',
+        'group',
+        'published',
     ];
 
     public static function getStaffMembers() {

@@ -32,7 +32,6 @@ const buttonFilter = ref<string>('imprisonedOrExiled')
 
 // Computed property to generate filtered records
 const filteredRecords = computed(() => {
-  console.log('Filtering')
   return records.value.filter((record) => {
     return checkPrisonerFilter(record, buttonFilter)
   });
