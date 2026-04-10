@@ -161,7 +161,7 @@
             <a href="/prisoner-outreach" class="prisoner-support-btn">Support</a>
 
             {{-- Ideologies & Affiliation tags --}}
-            @if($prisoner->ideologies || $prisoner->affiliation)
+            @if(!empty($prisoner->ideologies) || !empty($prisoner->affiliation))
                 <div class="prisoner-tags">
                     @foreach($prisoner->ideologies ?? [] as $ideology)
                         <span class="prisoner-tag">{{ $ideology }}</span>
