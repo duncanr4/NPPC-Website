@@ -53,6 +53,7 @@ final class Stripe {
             'mode'        => $mode,
             'line_items'  => $lineItems,
             'success_url' => url('/donate-callback').'?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url'  => url('/donate'),
         ]);
     }
 }

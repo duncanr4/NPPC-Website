@@ -179,6 +179,10 @@ final class SiteController extends Controller {
     public function article(string $slug) {
         $article = Article::getBySlug($slug);
 
+        if (! $article) {
+            abort(404);
+        }
+
         return view('article', compact('article'));
     }
 

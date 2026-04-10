@@ -9,21 +9,6 @@ use Illuminate\Support\Facades\Mail;
 
 final class FormSubmissionController extends Controller {
     public function submit(Request $request, string $form) {
-        $data = [];
-        foreach ($request->all() as $k => $v) {
-            if (in_array($k, ['/form/volunteer', '/form/contact', '_token', 'Token', 'g-recaptcha-response'])) {
-                continue;
-            }
-            $data[$k] = $v;
-        }
-
-        // Save to database first (always capture the submission)
-        FormSubmission::create([
-            'form_type' => $form,
-            'data'      => $data,
-            'status'    => 'new',
-        ]);
-
         // reCAPTCHA validation (only if secret is configured)
         $secretKey = config('services.recaptcha.secret');
         if ($secretKey) {
@@ -41,6 +26,20 @@ final class FormSubmissionController extends Controller {
                 }
             }
         }
+
+        $data = [];
+        foreach ($request->all() as $k => $v) {
+            if (in_array($k, ['/form/volunteer', '/form/contact', '_token', 'Token', 'g-recaptcha-response'])) {
+                continue;
+            }
+            $data[$k] = $v;
+        }
+
+        FormSubmission::create([
+            'form_type' => $form,
+            'data'      => $data,
+            'status'    => 'new',
+        ]);
 
         // Send email notification
         $formattedData = collect($data)->map(function ($value, $key) {

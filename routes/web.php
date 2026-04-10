@@ -3,10 +3,7 @@
 use App\Http\Controllers\DonateController;
 use App\Http\Controllers\FormSubmissionController;
 use App\Http\Controllers\SiteController;
-use App\Views\ViewSupport;
 use Illuminate\Support\Facades\Route;
-
-Route::get('dev', fn () => ViewSupport::getMenuItems());
 
 Route::controller(DonateController::class)
     ->group(function () {
@@ -17,8 +14,6 @@ Route::controller(SiteController::class)
     ->group(function () {
         Route::get('/', 'home')->name('home');
         Route::get('/search', 'search');
-        Route::get('/site', 'site');
-        Route::get('/settings', 'settings');
         Route::get('/news/{slug}', 'article');
         Route::get('history', 'history');
         Route::get('timeline', 'timeline');

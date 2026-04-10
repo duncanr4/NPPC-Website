@@ -298,7 +298,7 @@
             if(index > 0) {
                 index -= 1;
             } else {
-                index = contenEntries.length - 1;
+                index = contentEntries.length - 1;
             }
 
             contentContainer.innerHTML = contentEntries[index];
