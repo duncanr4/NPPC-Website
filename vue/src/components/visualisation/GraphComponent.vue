@@ -62,7 +62,6 @@ function tooltipTemplate(d: Record<string, number>): string {
     if(key.toLocaleLowerCase() !== 'year') total += d[key]
   })
 
-  console.log(d)
   const dataLegend = labels.value.filter((f: FormatConfig) => d[f.format] > 0)
       .reverse()
       .map((f: FormatConfig) => `<div><div style="margin-top: .35rem">${getIcon({ ...f, label: d[f.format] })} ${f.label}</div>`)
