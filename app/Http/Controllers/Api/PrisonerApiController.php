@@ -64,7 +64,7 @@ class PrisonerApiController extends Controller {
                 'longitude'             => $prisoner->lng ? (float) $prisoner->lng : null,
                 'Era'                   => $prisoner->era,
                 'Ideologies'            => $prisoner->ideologies ?? [],
-                'Affiliation'           => $prisoner->affiliation ?? [],
+                'Affiliation'           => !empty($prisoner->affiliation) ? $prisoner->affiliation : null,
                 'In Custody'            => $prisoner->in_custody,
                 'Released'              => $prisoner->released,
                 'In Exile'              => $prisoner->currently_in_exile,
