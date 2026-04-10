@@ -18,12 +18,15 @@ use Illuminate\Http\Request;
 
 final class SiteController extends Controller {
     public function page(string $slug) {
-        if ($page = Page::getBySlug($slug)) {
-            return view('page', compact('page'));
-        }
-
+        // Custom Blade views take priority over DB pages so that
+        // admin-created pages (used for nav placement) don't override
+        // hand-crafted designs like careers-internships, about, etc.
         if (view()->exists('pages.'.$slug)) {
             return view('pages.'.$slug);
+        }
+
+        if ($page = Page::getBySlug($slug)) {
+            return view('page', compact('page'));
         }
 
         abort(404);
