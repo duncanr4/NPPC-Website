@@ -33,6 +33,11 @@ class PageResource extends Resource {
                     ->label('Show in navigation')
                     ->default(true)
                     ->helperText('Uncheck to hide this page from the navigation menu. The page will still be accessible by URL.'),
+                Forms\Components\TextInput::make('sort_order')
+                    ->numeric()
+                    ->default(0)
+                    ->label('Sort Order')
+                    ->helperText('Controls the display order in the navigation menu. Lower numbers appear first.'),
                 \FilamentTiptapEditor\TiptapEditor::make('body')
                     ->profile('default')
                     ->columnSpanFull(),
@@ -51,7 +56,12 @@ class PageResource extends Resource {
                 Tables\Columns\IconColumn::make('show_in_nav')
                     ->label('In Nav')
                     ->boolean(),
+                Tables\Columns\TextColumn::make('sort_order')
+                    ->label('Order')
+                    ->sortable(),
             ])
+            ->defaultSort('sort_order')
+            ->reorderable('sort_order')
             ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),

@@ -16,7 +16,7 @@ abstract class ViewSupport {
 
         $parentPages = Page::where('parent_id', null)->where(function ($q) {
             $q->where('show_in_nav', true)->orWhereNull('show_in_nav');
-        })->get();
+        })->orderBy('sort_order')->get();
 
         foreach ($parentPages as $page) {
             $children = [];
