@@ -8,4 +8,8 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreatePrisoner extends CreateRecord {
     protected static string $resource = PrisonerResource::class;
+
+    protected function getRedirectUrl(): string {
+        return $this->getResource()::getUrl('index');
+    }
 }
