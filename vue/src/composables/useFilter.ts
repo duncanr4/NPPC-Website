@@ -56,7 +56,7 @@ export function useFilter(): {
             const prisonerValue: string|Array<string> = prisoner[field]
             const filterValues = cleanFilterObject[key]
 
-            if(!filterValues.length) continue
+            if(!filterValues || !filterValues.length) continue
             if(!prisonerValue) return false
 
             const matchesFilter = checkFilterValues(filterValues, prisonerValue)
