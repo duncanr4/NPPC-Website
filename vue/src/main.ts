@@ -14,10 +14,17 @@ import VueApexCharts from "vue3-apexcharts";
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
-const app = createApp(DatabaseApp).use(Antd)
-const appGallery = createApp(GalleryApp).use(Antd)
-const appStats = createApp(VisualisationApp).use(Antd).component('vue3-autocounter', Vue3autocounter).use(VueApexCharts);
+if (document.getElementById('app')) {
+    const app = createApp(DatabaseApp).use(Antd)
+    app.mount('#app')
+}
 
-app.mount('#app')
-appStats.mount('#app-stats')
-appGallery.mount('#app-gallery')
+if (document.getElementById('app-stats')) {
+    const appStats = createApp(VisualisationApp).use(Antd).component('vue3-autocounter', Vue3autocounter).use(VueApexCharts);
+    appStats.mount('#app-stats')
+}
+
+if (document.getElementById('app-gallery')) {
+    const appGallery = createApp(GalleryApp).use(Antd)
+    appGallery.mount('#app-gallery')
+}
