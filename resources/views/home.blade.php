@@ -26,11 +26,6 @@
         </div>
     </div>
 
-    {{-- Impact Stats --}}
-    @if(SiteSetting::get('stats_enabled', '1') === '1')
-        @include('sections.impact-stats')
-    @endif
-
     <div class="container">
         {{-- Articles --}}
         @if(SiteSetting::get('articles_enabled', '1') === '1')
