@@ -118,7 +118,12 @@
         <h1 class="gi-hero-title">Your Voice Can Free a Prisoner</h1>
         <p class="gi-hero-sub">Political prisoners need more than thoughts and prayers. They need people willing to write letters, make calls, spread awareness, donate resources, and show up. Here's how you can help.</p>
     </div>
+</div>
 
+{{-- ==================== IMPACT STATS (full-width) ==================== --}}
+@include('sections.impact-stats')
+
+<div class="gi-page">
     <div class="gi-divider"></div>
 
     {{-- ==================== ACTION CARDS ==================== --}}
