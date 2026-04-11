@@ -76,7 +76,7 @@ const mainCase = props.record.cases[0]
 
     <section class="flex justify-between mb-4">
       <section class="flex justify-start">
-        <template v-for="link in prisonerLinks" :key="link.key"><a v-if="record[link.key]" :href="record[link.key]" target="_blank" rel="noopener" class="text-lg"><span class="link-img" v-html="link.image"></span></a></template>
+        <template v-for="link in prisonerLinks" :key="link.key"><a v-if="record[link.key]" :href="record[link.key]" target="_blank" rel="noopener" class="text-lg" :aria-label="link.key + ' link for ' + record.name"><span class="link-img" v-html="link.image" aria-hidden="true"></span></a></template>
       </section>
       <div>
         <span :class="heading5" v-if="mainCase && mainCase['Incarceration Date']">Incarcerated: {{mainCase["Incarceration Date"]}}</span>
@@ -87,7 +87,7 @@ const mainCase = props.record.cases[0]
 
     <main class="block md:flex">
       <section class="image w-full md:w-1/4">
-        <img class="w-full h-auto" :src="record.Photo ? record.Photo : '/images/no-image-available.png'" />
+        <img class="w-full h-auto" :src="record.Photo ? record.Photo : '/images/no-image-available.png'" :alt="record.Photo ? 'Photo of ' + record.name : 'No image available'" />
         <section class="mt-4 flex justify-start flex-wrap" v-if="record.Ideologies && record.Ideologies.length > 0">
           <template v-for="ideology in record.Ideologies" :key="ideology"><span class="tagg">{{ideology}}</span></template>
         </section>

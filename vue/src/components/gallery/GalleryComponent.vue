@@ -30,6 +30,8 @@ onMounted(() => {
           v-for="(prisoner, index) in displayedRecords"
           :key="index"
           :style="{ backgroundImage: `url(${prisoner.Photo})` }"
+          role="img"
+          :aria-label="'Photo of ' + prisoner.name"
       >
         <div class="meta absolute left-0 right-0 bottom-0 pl-2 pr-2">
           <h2>{{prisoner.name}}</h2>

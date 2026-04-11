@@ -7,8 +7,8 @@
 
 
 <div x-data="{ open: false }" class="relative w-[220px] flex justify-end">
-    <button @click="open = !open" class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 hover:text-black focus:outline-none">
-        <i class="fa-light fa-inbox-out"></i>
+    <button @click="open = !open" class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 hover:text-black focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Share this article" aria-haspopup="true" :aria-expanded="open.toString()">
+        <i class="fa-light fa-inbox-out" aria-hidden="true"></i>
     </button>
 
     <div x-show="open" @click.outside="open = false" class="absolute right-0 mt-12 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
