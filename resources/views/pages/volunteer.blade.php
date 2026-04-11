@@ -11,17 +11,17 @@
     .vol-section-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 12px; }
     .vol-input {
         width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.3);
-        color: #fff; padding: 14px 16px; font-size: 15px; outline: none;
+        color: #fff; padding: 14px 16px; font-size: 15px;
         transition: border-color 0.2s;
     }
-    .vol-input:focus { border-color: #5660fe; }
+    .vol-input:focus { border-color: #5660fe; outline: 2px solid #5660fe; outline-offset: -2px; }
     .vol-input::placeholder { color: rgba(255,255,255,0.35); }
     .vol-textarea {
         width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.3);
-        color: #fff; padding: 14px 16px; font-size: 15px; outline: none; resize: vertical;
+        color: #fff; padding: 14px 16px; font-size: 15px; resize: vertical;
         min-height: 160px; transition: border-color 0.2s;
     }
-    .vol-textarea:focus { border-color: #5660fe; }
+    .vol-textarea:focus { border-color: #5660fe; outline: 2px solid #5660fe; outline-offset: -2px; }
     .vol-textarea::placeholder { color: rgba(255,255,255,0.35); }
     .vol-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .vol-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }

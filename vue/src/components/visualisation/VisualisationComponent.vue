@@ -1,14 +1,17 @@
 <template>
   <section>
     <nav>
-      <a-radio-group v-model:value="buttonFilter" class="visualisation-filter-cnt">
-        <a-radio-button value="imprisonedOrExiled">In Custody or Exiled</a-radio-button>
-        <a-radio-button value="">All Cases</a-radio-button>
-        <a-radio-button value="inExile">In Exile</a-radio-button>
-        <a-radio-button value="inCustody">In Custody</a-radio-button>
-        <a-radio-button value="released">Released</a-radio-button>
-        <a-radio-button value="awaitingTrial">Awaiting Trial</a-radio-button>
-      </a-radio-group>
+      <fieldset style="border:none; padding:0; margin:0;">
+        <legend class="sr-only">Filter statistics by prisoner status</legend>
+        <a-radio-group v-model:value="buttonFilter" class="visualisation-filter-cnt">
+          <a-radio-button value="imprisonedOrExiled">In Custody or Exiled</a-radio-button>
+          <a-radio-button value="">All Cases</a-radio-button>
+          <a-radio-button value="inExile">In Exile</a-radio-button>
+          <a-radio-button value="inCustody">In Custody</a-radio-button>
+          <a-radio-button value="released">Released</a-radio-button>
+          <a-radio-button value="awaitingTrial">Awaiting Trial</a-radio-button>
+        </a-radio-group>
+      </fieldset>
     </nav>
     <Suspense>
       <GraphComponent :records="filteredRecords"/>

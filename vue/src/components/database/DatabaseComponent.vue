@@ -46,16 +46,20 @@ watch(filterObject, (newValue, oldValue) => {
   <section id="prisoners-page" class="bg-black text-white py-12">
     <div class="container mx-auto">
 
-      <a-radio-group v-model:value="buttonFilter">
-        <a-radio-button value="imprisonedOrExiled">In Custody or Exiled</a-radio-button>
-        <a-radio-button value="">All Cases</a-radio-button>
-        <a-radio-button value="inExile">In Exile</a-radio-button>
-        <a-radio-button value="inCustody">In Custody</a-radio-button>
-        <a-radio-button value="released">Released</a-radio-button>
-        <a-radio-button value="awaitingTrial">Awaiting Trial</a-radio-button>
-      </a-radio-group>
+      <fieldset style="border:none; padding:0; margin:0;">
+        <legend class="sr-only">Filter by prisoner status</legend>
+        <a-radio-group v-model:value="buttonFilter">
+          <a-radio-button value="imprisonedOrExiled">In Custody or Exiled</a-radio-button>
+          <a-radio-button value="">All Cases</a-radio-button>
+          <a-radio-button value="inExile">In Exile</a-radio-button>
+          <a-radio-button value="inCustody">In Custody</a-radio-button>
+          <a-radio-button value="released">Released</a-radio-button>
+          <a-radio-button value="awaitingTrial">Awaiting Trial</a-radio-button>
+        </a-radio-group>
+      </fieldset>
 
-      <input type="search" placeholder="Search by name" v-model="nameSearch"/>
+      <label for="prisoner-search" class="sr-only">Search prisoners by name</label>
+      <input type="search" id="prisoner-search" placeholder="Search by name" v-model="nameSearch" aria-label="Search prisoners by name"/>
 
       <FiltersComponent class="mb-12" :filters="filterFieldsObj" v-model:model-value="filterObject"/>
       <template v-for="record in filteredRecords" >

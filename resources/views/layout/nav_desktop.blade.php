@@ -8,13 +8,14 @@
 {{-- Search Overlay --}}
 <div id="search-overlay" style="display:none; position:fixed; top:0; left:0; right:0; z-index:100001; background:#fff; padding:24px 40px; box-shadow:0 4px 30px rgba(0,0,0,0.3);">
     <div style="max-width:900px; margin:0 auto; display:flex; align-items:center; gap:16px;">
-        <form action="/search" method="GET" style="flex:1; display:flex; align-items:center; border:2px solid #ddd; border-radius:40px; padding:8px 20px;">
-            <input type="text" name="q" placeholder="Search this site" style="flex:1; border:none; outline:none; font-size:18px; color:#333; background:transparent;">
-            <button type="submit" style="background:#5660fe; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+        <form action="/search" method="GET" role="search" style="flex:1; display:flex; align-items:center; border:2px solid #ddd; border-radius:40px; padding:8px 20px;">
+            <label for="site-search" class="sr-only">Search this site</label>
+            <input type="text" name="q" id="site-search" placeholder="Search this site" style="flex:1; border:none; outline:none; font-size:18px; color:#333; background:transparent;">
+            <button type="submit" aria-label="Submit search" style="background:#5660fe; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
             </button>
         </form>
-        <button onclick="document.getElementById('search-overlay').style.display='none'" style="background:none; border:none; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center;">
+        <button onclick="document.getElementById('search-overlay').style.display='none'" aria-label="Close search" style="background:none; border:none; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center;">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#333" viewBox="0 0 24 24"><path d="M18.3 5.71a1 1 0 0 0-1.42 0L12 10.59 7.12 5.71a1 1 0 0 0-1.42 1.42L10.59 12l-4.89 4.88a1 1 0 1 0 1.42 1.42L12 13.41l4.88 4.89a1 1 0 0 0 1.42-1.42L13.41 12l4.89-4.88a1 1 0 0 0 0-1.41z"/></svg>
         </button>
     </div>
@@ -23,7 +24,7 @@
 {{-- Hamburger Slide-out Panel --}}
 <div id="hamburger-panel" style="display:none; position:fixed; top:0; right:0; bottom:0; width:380px; max-width:90vw; background:#fff; z-index:100001; box-shadow:-4px 0 30px rgba(0,0,0,0.3); overflow-y:auto;">
     <div style="display:flex; justify-content:flex-end; padding:20px 24px;">
-        <button onclick="document.getElementById('hamburger-panel').style.display='none'; document.getElementById('hamburger-backdrop').style.display='none';" style="background:none; border:none; cursor:pointer;">
+        <button onclick="document.getElementById('hamburger-panel').style.display='none'; document.getElementById('hamburger-backdrop').style.display='none';" aria-label="Close menu" style="background:none; border:none; cursor:pointer;">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#333" viewBox="0 0 24 24"><path d="M18.3 5.71a1 1 0 0 0-1.42 0L12 10.59 7.12 5.71a1 1 0 0 0-1.42 1.42L10.59 12l-4.89 4.88a1 1 0 1 0 1.42 1.42L12 13.41l4.88 4.89a1 1 0 0 0 1.42-1.42L13.41 12l4.89-4.88a1 1 0 0 0 0-1.41z"/></svg>
         </button>
     </div>
@@ -57,7 +58,7 @@
         <div style="max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:0 24px; height:72px;">
             {{-- Logo --}}
             <a href="/" style="flex-shrink:0;">
-                <img src="/logo.svg" alt="NPPC" style="height:50px;">
+                <img src="/logo.svg" alt="National Political Prisoner Coalition" style="height:50px;">
             </a>
 
             {{-- Nav links --}}
@@ -86,10 +87,10 @@
                 <a href="/donate" style="background:#5660fe; color:#fff; text-decoration:none; font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; padding:12px 28px; border-radius:4px; display:flex; align-items:center; gap:8px; transition:background 0.2s;" onmouseenter="this.style.background='#4850e6'" onmouseleave="this.style.background='#5660fe'">
                     DONATE <span style="font-size:18px;">&rarr;</span>
                 </a>
-                <button onclick="document.getElementById('search-overlay').style.display='block'; document.getElementById('search-overlay').querySelector('input').focus();" style="background:#222; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                <button onclick="document.getElementById('search-overlay').style.display='block'; document.getElementById('search-overlay').querySelector('input').focus();" aria-label="Search" style="background:#222; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
                 </button>
-                <button onclick="document.getElementById('hamburger-panel').style.display='block'; document.getElementById('hamburger-backdrop').style.display='block';" style="background:#222; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                <button onclick="document.getElementById('hamburger-panel').style.display='block'; document.getElementById('hamburger-backdrop').style.display='block';" aria-label="Open menu" style="background:#222; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
                 </button>
             </div>
@@ -141,28 +142,59 @@ document.addEventListener('DOMContentLoaded', function() {
         var panel = document.querySelector('[data-mega-panel="' + slug + '"]');
         if (!panel) return;
 
-        item.addEventListener('mouseenter', function() {
+        function openPanel() {
             if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
             closeAll();
             panel.style.display = 'block';
             item.classList.add('mega-active');
-        });
+            link.setAttribute('aria-expanded', 'true');
+        }
 
-        item.addEventListener('mouseleave', function() {
+        function scheduleClose() {
             closeTimer = setTimeout(function() {
                 closeAll();
+                link.setAttribute('aria-expanded', 'false');
             }, 200);
-        });
+        }
 
+        item.addEventListener('mouseenter', openPanel);
+        item.addEventListener('mouseleave', scheduleClose);
         panel.addEventListener('mouseenter', function() {
             if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
         });
+        panel.addEventListener('mouseleave', scheduleClose);
 
-        panel.addEventListener('mouseleave', function() {
-            closeTimer = setTimeout(function() {
+        // Keyboard: open on focus, close on blur away
+        link.addEventListener('focus', openPanel);
+        link.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openPanel();
+                var firstLink = panel.querySelector('a');
+                if (firstLink) firstLink.focus();
+            }
+            if (e.key === 'Escape') {
                 closeAll();
-            }, 200);
+                link.setAttribute('aria-expanded', 'false');
+                link.focus();
+            }
         });
+        panel.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAll();
+                link.setAttribute('aria-expanded', 'false');
+                link.focus();
+            }
+        });
+        panel.addEventListener('focusout', function(e) {
+            if (!panel.contains(e.relatedTarget) && !item.contains(e.relatedTarget)) {
+                scheduleClose();
+            }
+        });
+
+        // Set ARIA attributes
+        link.setAttribute('aria-haspopup', 'true');
+        link.setAttribute('aria-expanded', 'false');
 
         // Prevent click on parent link if it has children
         link.addEventListener('click', function(e) {
