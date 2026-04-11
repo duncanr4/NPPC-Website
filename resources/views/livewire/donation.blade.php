@@ -27,5 +27,8 @@
         <input type="number" wire:model.live="customAmount" class="donate-custom-input" placeholder="Enter amount" min="1"/>
     @endif
 
-    <button class="donate-submit" wire:click="donate">{{$this->buttonTitle}}</button>
+    <button class="donate-submit" wire:click="donate" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" style="position:relative;">
+        <span wire:loading.remove>{{$this->buttonTitle}}</span>
+        <span wire:loading>Processing...</span>
+    </button>
 </div>

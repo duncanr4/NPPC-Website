@@ -59,7 +59,7 @@
                     </ul>
                 </nav>
                 <div class="site-footer-copyright">
-                    <p>© 2026 National Political Prisoner Coalition</p>
+                    <p>© {{ date('Y') }} National Political Prisoner Coalition</p>
                 </div>
             </div>
             <svg class="frame-texture" viewBox="0 0 483.45 32.11" aria-hidden="true">
