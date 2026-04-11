@@ -9,27 +9,40 @@
                 <p class="text-center text-white mb-6">
                     Please fill out the form below to reach us. We look forward to hearing from you.
                 </p>
+
+                @if(request('form_submitted'))
+                    <div style="background:rgba(86,96,254,0.1); border:1px solid #5660fe; border-radius:8px; padding:20px; margin-bottom:24px; color:#fff; font-size:16px; text-align:center;">
+                        Thank you for your message! We'll get back to you soon.
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div style="background:rgba(239,68,68,0.1); border:1px solid #ef4444; border-radius:8px; padding:20px; margin-bottom:24px; color:#ef4444; font-size:14px;">
+                        @foreach($errors->all() as $error)
+                            <p style="margin:0 0 4px;">{{ $error }}</p>
+                        @endforeach
+                    </div>
+                @endif
+
                 <form method="POST" id="contact-form" action="/form/contact" class="space-y-6">
                     @csrf
                     <div>
                         <label for="name" class="block text-white text-sm mb-2">Name</label>
-                        <input type="text" name="name" id="name" class="w-full bg-transparent border-b border-white text-white focus:outline-none focus:ring-0" required>
+                        <input type="text" name="name" id="name" class="w-full bg-transparent border-b border-white text-white focus:outline-none focus:ring-0 focus:border-indigo-500" required>
                     </div>
                     <div>
                         <label for="email" class="block text-white text-sm mb-2">Email</label>
-                        <input type="email" name="email" id="email" class="w-full bg-transparent border-b border-white text-white focus:outline-none focus:ring-0" required>
+                        <input type="email" name="email" id="email" class="w-full bg-transparent border-b border-white text-white focus:outline-none focus:ring-0 focus:border-indigo-500" required>
                     </div>
                     <div>
                         <label for="message" class="block text-white text-sm mb-2">Message</label>
-                        <textarea name="message" id="message" class="w-full bg-transparent border border-white text-white p-4 focus:outline-none focus:ring-0" rows="5" required></textarea>
+                        <textarea name="message" id="message" class="w-full bg-transparent border border-white text-white p-4 focus:outline-none focus:ring-0 focus:border-indigo-500" rows="5" required></textarea>
                     </div>
                     <div class="text-center mt-6">
-                        <button class="cs-btn cs-style1 g-recaptcha"
+                        <button type="submit" class="cs-btn cs-style1 g-recaptcha"
                                 data-sitekey="6LdREZkqAAAAADv7Ei5dS_SZ1oVaz6A5FE7nacrw"
                                 data-callback='onSubmit'
                                 data-action='submit'
-                                onclick="onSubmit()"
-
                         >
                             <span>Send inquiry</span>
                         </button>

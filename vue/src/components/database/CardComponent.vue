@@ -38,7 +38,9 @@ const parseValueForOutput = (value: any): any => {
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const date = new Date(value);
-    return `${date.toLocaleString('default', { month: 'short' })} ${date.getDate()}${['th', 'st', 'nd', 'rd'][(date.getDate() - 20) % 10] || 'th'} ${date.getFullYear()}`;
+    const day = date.getDate();
+    const suffix = (day >= 11 && day <= 13) ? 'th' : ['th','st','nd','rd'][day % 10] || 'th';
+    return `${date.toLocaleString('default', { month: 'short' })} ${day}${suffix} ${date.getFullYear()}`;
   }
 
 
@@ -93,8 +95,8 @@ const mainCase = props.record.cases[0]
 
       <section class="info w-full px-4 md:w-3/4">
 
-        <div v-if="record.Description" class="text-left">
-          <p v-html="record.Description.trim().split('\n').join('<br/>')"></p>
+        <div v-if="record.Description" class="text-left" style="white-space:pre-line;">
+          <p>{{ record.Description }}</p>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-5 text-left">

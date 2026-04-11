@@ -34,6 +34,11 @@
                     <span>{{ $DTO->customerName }}</span>
                 </div>
             </div>
+
+            <div style="display:flex; justify-content:center; gap:16px; margin-top:48px;">
+                <a href="/" style="display:inline-block; border:1px solid rgba(255,255,255,0.3); color:#fff; padding:14px 28px; font-size:14px; font-weight:700; text-decoration:none; transition:all 0.2s;">Return Home</a>
+                <a href="/donate" style="display:inline-block; background:#5660fe; color:#fff; padding:14px 28px; font-size:14px; font-weight:700; text-decoration:none; transition:all 0.2s;">Donate Again</a>
+            </div>
         </div>
     </section>
 
