@@ -258,7 +258,6 @@ class PrisonerResource extends Resource {
             ], layout: Tables\Enums\FiltersLayout::AboveContent)
             ->filtersFormColumns(4)
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -381,7 +380,6 @@ class PrisonerResource extends Resource {
         return [
             'index'  => Pages\ListPrisoners::route('/'),
             'create' => Pages\CreatePrisoner::route('/create'),
-            'view'   => Pages\ViewPrisoner::route('/{record}'),
             'edit'   => Pages\EditPrisoner::route('/{record}/edit'),
         ];
     }
