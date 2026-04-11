@@ -84,14 +84,14 @@ const mainCase = props.record.cases[0]
 
 
     <main class="block md:flex">
-      <section class="image w-full md:w-1/4" v-if="record.Photo">
-        <img class="w-full h-auto" :src="record.Photo ? record.Photo : ''" />
-        <section class="mt-4 flex justify-start flex-wrap">
+      <section class="image w-full md:w-1/4">
+        <img class="w-full h-auto" :src="record.Photo ? record.Photo : '/images/no-image-available.svg'" />
+        <section class="mt-4 flex justify-start flex-wrap" v-if="record.Ideologies && record.Ideologies.length > 0">
           <template v-for="ideology in record.Ideologies" :key="ideology"><span class="tagg">{{ideology}}</span></template>
         </section>
       </section>
 
-      <section class="info w-full px-4" :class="record.Photo ? 'md:w-3/4' : ''">
+      <section class="info w-full px-4 md:w-3/4">
 
         <div v-if="record.Description" class="text-left">
           <p v-html="record.Description.trim().split('\n').join('<br/>')"></p>
@@ -119,7 +119,7 @@ const mainCase = props.record.cases[0]
           <div>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 text-left">
               <template v-for="field in caseCardFields">
-                <div v-if="!!criminalCase[field.fieldKey]" :key="field.title" class="mb-4">
+                <div v-if="criminalCase[field.fieldKey] != null && criminalCase[field.fieldKey] !== '' && !(Array.isArray(criminalCase[field.fieldKey]) && criminalCase[field.fieldKey].length === 0)" :key="field.title" class="mb-4">
                   <div :class="heading5">{{field.title}}</div>
                   <div :class="textValue" v-if="field.asTags">
                     <span class="tagg" v-for="i in criminalCase[field.fieldKey]">{{i}}</span>
